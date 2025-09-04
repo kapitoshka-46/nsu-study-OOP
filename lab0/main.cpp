@@ -1,5 +1,6 @@
 #include "module1.h"
 #include "module2.h"
+#include "module3.h"
 #include <iostream>
 
 int main(int argc, char** argv)
@@ -18,5 +19,7 @@ int main(int argc, char** argv)
 
 	using Module2::getMyName;
 	std::cout << getMyName() << "\n"; // (D)
+
+	std::cout << Module3::getMyName();
 
 }
