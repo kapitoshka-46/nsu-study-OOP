@@ -4,24 +4,25 @@
 #include <array>
 #include <string>
 #include <fstream>
+#include <vector>
 
 
 namespace words_buffer {
-    constexpr size_t maxBufferSize = 512;
-
+    // задача. чтение из файла и возвращение слов.
     class WordsBuffer {
-        std::ifstream &in;
-        std::array<std::string, maxBufferSize> words;
-        
     public:
-        WordsBuffer(std::ifstream &in);
+        std::string line;
+        std::vector<std::string> words;
+
+
+        WordsBuffer() = default;
         ~WordsBuffer() = default;
 
+        void makeWordsFromStr(std::string& text); // make private
+
+        std::vector<std::string>& getNewWords();
         const std::string &nextWord();
-        bool isEndOfFile(void);
-        bool isEmpty(void);     //
-        void update(void);
-        bool updateIfPossible(void);
+
     };
 }
 
