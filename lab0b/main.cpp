@@ -54,23 +54,50 @@ public:
 
 class Saver {
 private:
-    std::ofstream & out;
+    int count {};
+    std::ofstream out {};
 public:
-    Saver(std::ofstream & out) : out(out) {}
-    ~Saver() {};
-
-    bool SaveMapToCSV();   // сохраняет мапу в csv  файл
+    Saver(std::string outPath);
+    ~Saver();
+    void changePath(std::string path);
+    void saveMapAsCSV(std::map<std::string, unsigned> pairs);
 };
+
+Saver::Saver(std::string outPath) {
+    std::cout << "File " << ++count << " opened." << '\n';
+    out.open(outPath);
+}
+Saver::~Saver() {
+    if (out.is_open()) {
+        out.close();
+    }
+    std::cout << "File " << count-- << " closed." << '\n';
+}
+
+void Saver::saveMapAsCSV(std::map<std::string, unsigned> pairs) {
+    for (auto [first, second]: pairs) {
+        out << first << ',' << second << '\n';
+    }
+    std::cout << "Saved CSV to file " << count << ".\n";
+}
+
 
 int main(int argc, char** argv) {
     if (argc >= 3) {
         std::cout << argv[1] << "->" << argv[2];
     }
+    else {
+        // std::cout << "Ivalid argument. Usage: "<< argv[0] << " input.txt output.csv" <<'\n';
+        // return 0;
+    }
 
     std::string text = "MyStr omg it. is. us us is is is Mystr my. stt ?????  wtf!! bto";
     auto counter = WordCounter();
-    auto& map = counter.countWordsInStr(text);
-    for (auto &[word, freq] : map) {
-        std::cout << word << ' ' << freq << std::endl;
-    }
+    auto& frequencyMap = counter.countWordsInStr(text);
+    // for (auto &[word, freq] : frequencyMap) {
+    //     std::cout << word << ' ' << freq << std::endl;
+    // }
+    
+    auto outFile = Saver("out.csv");
+    outFile.saveMapAsCSV(frequencyMap);
 }
