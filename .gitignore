@@ -1,4 +1,5 @@
 
-/lab0/build
-/lab0b/build
-/lab1a/.idea
+*/.idea
+*/cmake-build-debug
+*/build
+*/.idea
