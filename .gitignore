@@ -1,4 +1,4 @@
-
-/lab0/build
-/lab0b/build
-/lab1a/.idea
+*/build
+*/cmake-build-debug
+*/.idea
+*/.vscode
