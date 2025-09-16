@@ -23,10 +23,6 @@ void WordCounter::CountWordsIn(const std::string &text) {
     CountWordsAndMap_(text);
 }
 
-bool comapre(const std::pair<std::string, int> & a, const std::pair<const std::string, int>& b) {
-    return a.second > b.second;
-}
-
 std::vector<std::pair<std::string, int>> & WordCounter::GetSortedVector() {
     // TODO вынести этот бардак в функцию.
     using std::pair;
@@ -35,7 +31,9 @@ std::vector<std::pair<std::string, int>> & WordCounter::GetSortedVector() {
     std::sort(
         freqVector.begin(),
         freqVector.end(),
-        comapre
+        [](const auto &a, const auto&b) {
+            return a.second > b.second;
+        }
         );
     return freqVector;
 }
