@@ -2,14 +2,21 @@
 #define BITARRAY_H
 
 #include <string>
+#include <vector>
 
 //В этой задаче для простоты не требуется делать контейнер шаблонным,
 //но это вполне допускается по желанию студента.
 class BitArray
 {
+private:
+    std::vector<char> bytes;
+    size_t size_bits;
+    size_t get_size_in_bytes_(int num_bits);
 public:
     BitArray();
-    ~BitArray();
+    ~BitArray() = default;
+
+
 
     //Конструирует массив, хранящий заданное количество бит.
     //Первые sizeof(long) бит можно инициализровать с помощью параметра value.
@@ -76,7 +83,7 @@ public:
 
     //Возвращает строковое представление массива.
     std::string to_string() const;
-    };
+};
 
     bool operator==(const BitArray & a, const BitArray & b);
     bool operator!=(const BitArray & a, const BitArray & b);
