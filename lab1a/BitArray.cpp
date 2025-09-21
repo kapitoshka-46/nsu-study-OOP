@@ -6,15 +6,14 @@ using uchar = unsigned char;
 
 
 //---------------------------- Constructors -------------------------------//
-BitArray::BitArray(int num_bits, unsigned long value) {
+BitArray::BitArray(int num_bits, unsigned long value)
+: size_bits(num_bits) {
     if (num_bits < 0) {
         std::cerr << "Cannot create array with negative size\n";
         return;
     }
+    bytes.resize(size_bytes_()); // size_bits should be initialized before this call
 
-    int num_bytes = size_bytes_();
-    bytes.resize(num_bytes);
-    size_bits = num_bits;
     for (int i = 0; i < bytes.size(); i++) {
         bytes[i] = static_cast<uchar>(value >> (i * 8) & 255);
     }
@@ -36,8 +35,6 @@ int BitArray::size_bytes_() {
     }
     return num_bytes;
 }
-
-
 
 std::string BitArray::to_string() const {
     std::string str;
@@ -88,7 +85,8 @@ void BitArray::clear() {
 
 BitArray &BitArray::reset(int n) {
     int i = n / 8;
-    bytes[i] = bytes[i]  &  ~(1 << (n % 8));
+    auto mask = ~(1 << (n % 8));
+    bytes[i] = bytes[i]  &  mask;
     return *this;
 }
 BitArray &BitArray::reset() {
@@ -139,7 +137,7 @@ bool BitArray::operator[](int i) const {
 
 BitArray BitArray::operator~() const {
     auto new_arr = BitArray(size_bits);
-    for (auto byte : new_arr) {
+    for (auto& byte : new_arr.bytes) {
         byte = ~byte;
     }
     return new_arr;
