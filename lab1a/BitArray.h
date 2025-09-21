@@ -24,7 +24,8 @@ public:
     //Первые sizeof(long) бит можно инициализровать с помощью параметра value.
     explicit BitArray(int num_bits, unsigned long value = 0);
 
-
+    // Получить константую ссылку на реальный массив
+    const std::vector<unsigned char> &data() const;
 
     //Обменивает значения двух битовых массивов.
     void swap(BitArray& b);
@@ -55,7 +56,6 @@ public:
     BitArray operator<<(int n) const;
     BitArray operator>>(int n) const;
 
-
     //Устанавливает бит с индексом n в значение val.
     BitArray& set(int n, bool val = true);
     //Заполняет массив истиной.
@@ -72,6 +72,9 @@ public:
     bool none() const;
     //Битовая инверсия
     BitArray operator~() const;
+
+
+
     //Подсчитывает количество единичных бит.
     int count() const;
 
@@ -84,7 +87,16 @@ public:
 
     //Возвращает строковое представление массива.
     std::string to_string() const;
-};
+
+
+    // ------------- My own functions ------------- //
+    static bool is_equal(const BitArray & a, const BitArray & b);
+    static bool is_not_equal(const BitArray & a, const BitArray & b);
+
+    static BitArray do_xor(const BitArray & a, const BitArray & b);
+    static BitArray do_and();
+
+};  // --------------------END OF CLASS-----------------------//
 
     bool operator==(const BitArray & a, const BitArray & b);
     bool operator!=(const BitArray & a, const BitArray & b);

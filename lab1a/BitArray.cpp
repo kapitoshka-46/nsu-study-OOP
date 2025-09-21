@@ -8,16 +8,20 @@ using uchar = unsigned char;
 //---------------------------- Constructors -------------------------------//
 BitArray::BitArray(int num_bits, unsigned long value)
 : size_bits(num_bits) {
+
     if (num_bits < 0) {
         std::cerr << "Cannot create array with negative size\n";
         return;
     }
     bytes.resize(size_bytes_()); // size_bits should be initialized before this call
-
     for (int i = 0; i < bytes.size(); i++) {
         bytes[i] = static_cast<uchar>(value >> (i * 8) & 255);
     }
 }
+
+// ----------------------------- static methods ------------------------------ //
+
+
 
 // ------------------------------ const methods ----------------------------- //
 int BitArray::size() const {
@@ -72,6 +76,17 @@ int BitArray::count() const {
     return count;
 }
 
+const std::vector<unsigned char> &BitArray::data() const {
+    return bytes;
+}
+
+bool BitArray::is_equal(const BitArray &a, const BitArray &b) {
+    return a.data() == b.data();
+}
+
+bool BitArray::is_not_equal(const BitArray &a, const BitArray &b) {
+    return a.data() != b.data();
+}
 
 
 // ------------------------------- methods ------------------------------ //
@@ -141,6 +156,14 @@ BitArray BitArray::operator~() const {
         byte = ~byte;
     }
     return new_arr;
+}
+
+bool operator==(const BitArray & a, const BitArray & b) {
+    return BitArray::is_equal(a, b);
+}
+
+bool operator!=(const BitArray &a, const BitArray &b) {
+    return a.data() != b.data();
 }
 
 
