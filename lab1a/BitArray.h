@@ -9,9 +9,9 @@
 class BitArray
 {
 private:
-    std::vector<char> bytes;
-    size_t size_bits;
-    size_t get_size_in_bytes_(int num_bits);
+    std::vector<unsigned char> bytes;
+    int size_bits {};
+
 public:
     BitArray();
     ~BitArray() = default;

@@ -2,15 +2,10 @@
 
 #include <iostream>
 
-size_t BitArray::get_size_in_bytes_(int num_bits) {
-    int size_in_bytes = num_bits / 8;
-    if (num_bits % 8 != 0) {
-        size_in_bytes += 1;
-    }
-    return size_in_bytes;
-}
+using uchar = unsigned char;
 
 
+//---------------------------- Constructors -------------------------------//
 BitArray::BitArray() = default;
 
 BitArray::BitArray(int num_bits, unsigned long value) {
@@ -19,13 +14,26 @@ BitArray::BitArray(int num_bits, unsigned long value) {
         return;
     }
 
-    bytes.resize(get_size_in_bytes_(num_bits));
+    int num_bytes = num_bits / 8;
+    if (num_bits % 8 == 0) {
+        num_bytes += 1;
+    }
+
+    bytes.resize(num_bytes);
     size_bits = num_bits;
     for (int i = 0; i < bytes.size(); i++) {
-        bytes[i] = (value >> (i * 8)) & 255;
+        bytes[i] = static_cast<uchar>(value >> (i * 8) & 255);
     }
 }
 
+BitArray::BitArray(const BitArray &b) {
+
+}
+
+
+
+
+// ------------------------------ const methods ----------------------------- //
 int BitArray::size() const {
     return size_bits;
 }
