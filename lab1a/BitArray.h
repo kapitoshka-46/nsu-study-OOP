@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 //В этой задаче для простоты не требуется делать контейнер шаблонным,
 //но это вполне допускается по желанию студента.
@@ -12,17 +13,17 @@ private:
     std::vector<unsigned char> bytes;
     int size_bits {};
 
+    int size_bytes_();
+
 public:
-    BitArray();
+    BitArray() = default;
     ~BitArray() = default;
-
-
+    BitArray(const BitArray& b) = default;
 
     //Конструирует массив, хранящий заданное количество бит.
     //Первые sizeof(long) бит можно инициализровать с помощью параметра value.
     explicit BitArray(int num_bits, unsigned long value = 0);
 
-    BitArray(const BitArray& b);
 
 
     //Обменивает значения двух битовых массивов.
