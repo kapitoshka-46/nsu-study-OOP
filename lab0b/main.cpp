@@ -6,9 +6,8 @@
 #include "Writer.h"
 #include "Reader.h"
 
-int main(int argc, char** argv) {
-    using std::string;
 
+int main(int argc, char** argv) {
     if (argc >= 3) {
         std::cout << "Count words: "<< argv[1] << " ==> " << argv[2] << std::endl;
     }
@@ -22,4 +21,6 @@ int main(int argc, char** argv) {
 
     auto out = Writer(argv[2]);
     out.SaveAsCSV(freqVector, counter.TotalWordsCount());
+
+    return 0;
 }
