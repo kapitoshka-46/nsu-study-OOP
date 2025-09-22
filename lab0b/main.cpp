@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
         counter.CountWordsIn(line);
         line = in.GetNewLine();
     }
-    auto freqVector = counter.GetSortedVector();
+    const auto &freqVector = counter.GetSortedVector();
 
     auto out = DocumentWriter(argv[2]);
     out.SaveAsCSV(freqVector, counter.GetTotal());

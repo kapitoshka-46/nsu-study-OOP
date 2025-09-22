@@ -1,6 +1,9 @@
 #include "WordCounter.h"
 #include <algorithm>
 
+
+#include <iostream>
+
 void WordCounter::CountWordsAndMap_(const std::string &text) {
     // Find a word
     std::string separators = " ;:,./\'\"<>!?@()[]{}=+-\\|\n";
@@ -8,7 +11,7 @@ void WordCounter::CountWordsAndMap_(const std::string &text) {
     while (start != std::string::npos) {
         size_t end = text.find_first_of(separators, start + 1);
         if (end == std::string::npos) { // == дошли до конца строки
-            end = text.length() - 1;
+            end = text.length();
         }
         // the word is founded
         auto word = text.substr(start, end - start);
@@ -25,17 +28,18 @@ void WordCounter::CountWordsIn(const std::string &text) {
     CountWordsAndMap_(text);
 }
 // TODO поставить конст
-const std::vector<std::pair<std::string, int>> &WordCounter::GetSortedVector() {
-    using std::pair;
-    using std::string;
-    freqVector = {freqMap.begin(), freqMap.end()};
+const std::vector<std::pair<const std::string *, int>> &WordCounter::GetSortedVector() {
+
+    for (const auto &[fst, snd] : freqMap) {
+        freqVector.emplace_back(&fst, snd);
+    }
+
     std::sort(
         freqVector.begin(),
         freqVector.end(),
         [](const auto &a, const auto &b) {
             return a.second > b.second;
-        }
-        );
+        });
     return freqVector;
 }
 

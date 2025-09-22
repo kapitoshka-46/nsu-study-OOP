@@ -13,7 +13,7 @@
 class WordCounter {
 private:
     std::map<std::string, int> freqMap {};
-    std::vector<std::pair<std::string, int>> freqVector {};
+    std::vector<std::pair<const std::string *, int>> freqVector{};
     int totalWords {};
 
     void CountWordsAndMap_(const std::string &text);
@@ -23,7 +23,8 @@ public:
     WordCounter() = default;
     ~WordCounter() = default;
     void CountWordsIn(const std::string &text);
-    const std::vector<std::pair<std::string, int>>  &GetSortedVector();
+
+    const std::vector<std::pair<const std::string *, int>> &GetSortedVector();
     int GetTotal() const;
 
 };

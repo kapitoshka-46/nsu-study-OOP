@@ -17,7 +17,7 @@ private:
 public:
     DocumentWriter(const char  *outPath);
     ~DocumentWriter();
-    void SaveAsCSV(std::vector<std::pair<std::string, int>> &vectorOfPairs, int total);
+    void SaveAsCSV(const std::vector<std::pair<const std::string *, int>> &vectorOfPairs, int total);
 };
 
 
