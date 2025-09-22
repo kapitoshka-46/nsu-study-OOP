@@ -8,7 +8,7 @@
 #include <fstream>
 #include <string>
 
-class DocumentReader {
+class Reader {
 private:
     int count = 0;
     bool isEnd = false;
@@ -17,8 +17,8 @@ private:
 
 public:
 
-    DocumentReader(const char *path);
-    ~DocumentReader();
+    Reader(const std::string &path);
+    ~Reader();
 
     std::string &GetNewLine();
     bool IsEnd() const;

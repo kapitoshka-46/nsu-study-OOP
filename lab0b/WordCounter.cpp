@@ -4,6 +4,14 @@
 
 #include <iostream>
 
+
+WordCounter::WordCounter(const std::string &inputPath)
+    : input(inputPath)
+{
+
+}
+
+
 void WordCounter::CountWordsAndMap_(const std::string &text) {
     // Find a word
     std::string separators = " ;:,./\'\"<>!?@()[]{}=+-\\|\n";
@@ -23,12 +31,17 @@ void WordCounter::CountWordsAndMap_(const std::string &text) {
     }
 }
 
-
-void WordCounter::CountWordsIn(const std::string &text) {
-    CountWordsAndMap_(text);
+const std::vector<std::pair<const std::string *, int> > &WordCounter::GetStatistic() {
+    auto line = input.GetNewLine();
+    while (not input.IsEnd()) {
+        line = input.GetNewLine();
+        CountWordsAndMap_(line);
+    }
+    return GetSortedVector_();
 }
-// TODO поставить конст
-const std::vector<std::pair<const std::string *, int>> &WordCounter::GetSortedVector() {
+
+
+const std::vector<std::pair<const std::string *, int>> &WordCounter::GetSortedVector_() {
 
     for (const auto &[fst, snd] : freqMap) {
         freqVector.emplace_back(&fst, snd);
@@ -43,6 +56,6 @@ const std::vector<std::pair<const std::string *, int>> &WordCounter::GetSortedVe
     return freqVector;
 }
 
-int WordCounter::GetTotal() const {
+int WordCounter::TotalWordsCount() const {
     return totalWords;
 }

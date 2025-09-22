@@ -4,9 +4,9 @@ project(lab0b)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(lab0b main.cpp
-        DocumentWriter.cpp
-        DocumentWriter.h
-        DocumentReader.cpp
-        DocumentReader.h
+        Writer.cpp
+        Writer.h
+        Reader.cpp
+        Reader.h
         WordCounter.cpp
         WordCounter.h)

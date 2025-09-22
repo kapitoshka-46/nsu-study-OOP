@@ -9,14 +9,14 @@
 #include <fstream>
 #include <vector>
 
-class DocumentWriter {
+class Writer {
 private:
     int count {};
     std::ofstream out {};
 
 public:
-    DocumentWriter(const char  *outPath);
-    ~DocumentWriter();
+    Writer(const char  *outPath);
+    ~Writer();
     void SaveAsCSV(const std::vector<std::pair<const std::string *, int>> &vectorOfPairs, int total);
 };
 
