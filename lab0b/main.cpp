@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
         std::cout << "Invalid argument. Usage: "<< argv[0] << " input.txt output.csv" <<'\n';
         return 0;
     }
-
+    // TODO звездочки конст мейн упротсить
     auto in = DocumentReader(argv[1]);
     auto counter = WordCounter();
     string &line = in.GetNewLine();
@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
         line = in.GetNewLine();
     }
     auto freqVector = counter.GetSortedVector();
+
     auto out = DocumentWriter(argv[2]);
     out.SaveAsCSV(freqVector, counter.GetTotal());
 }

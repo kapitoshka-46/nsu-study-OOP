@@ -23,7 +23,7 @@ public:
     WordCounter() = default;
     ~WordCounter() = default;
     void CountWordsIn(const std::string &text);
-    std::vector<std::pair<std::string, int>>  &GetSortedVector();
+    const std::vector<std::pair<std::string, int>>  &GetSortedVector();
     int GetTotal() const;
 
 };

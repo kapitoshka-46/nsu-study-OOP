@@ -24,8 +24,8 @@ void WordCounter::CountWordsAndMap_(const std::string &text) {
 void WordCounter::CountWordsIn(const std::string &text) {
     CountWordsAndMap_(text);
 }
-
-std::vector<std::pair<std::string, int>> &WordCounter::GetSortedVector() {
+// TODO поставить конст
+const std::vector<std::pair<std::string, int>> &WordCounter::GetSortedVector() {
     using std::pair;
     using std::string;
     freqVector = {freqMap.begin(), freqMap.end()};
