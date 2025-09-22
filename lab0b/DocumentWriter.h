@@ -13,10 +13,11 @@ class DocumentWriter {
 private:
     int count {};
     std::ofstream out {};
+
 public:
     DocumentWriter(const char  *outPath);
     ~DocumentWriter();
-    void saveAsCSV(std::vector<std::pair<std::string, int>> &vectorOfPairs);
+    void SaveAsCSV(std::vector<std::pair<std::string, int>> &vectorOfPairs, int total);
 };
 
 

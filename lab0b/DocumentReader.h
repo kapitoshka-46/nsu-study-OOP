@@ -14,13 +14,14 @@ private:
     bool isEnd = false;
     std::ifstream in;
     std::string buffer;
+
 public:
 
     DocumentReader(const char *path);
     ~DocumentReader();
 
     std::string &GetNewLine();
-    bool IsEnd();
+    bool IsEnd() const;
 };
 
 

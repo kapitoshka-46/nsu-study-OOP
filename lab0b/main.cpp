@@ -6,8 +6,6 @@
 #include "DocumentWriter.h"
 #include "DocumentReader.h"
 
-
-
 int main(int argc, char** argv) {
     using std::string;
 
@@ -22,11 +20,12 @@ int main(int argc, char** argv) {
     auto in = DocumentReader(argv[1]);
     auto counter = WordCounter();
     string &line = in.GetNewLine();
+
     while (!in.IsEnd()) {
         counter.CountWordsIn(line);
         line = in.GetNewLine();
     }
     auto freqVector = counter.GetSortedVector();
     auto out = DocumentWriter(argv[2]);
-    out.saveAsCSV(freqVector);
+    out.SaveAsCSV(freqVector, counter.GetTotal());
 }

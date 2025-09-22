@@ -1,5 +1,6 @@
 #include "DocumentWriter.h"
 #include <iostream>
+#include <iomanip>
 
 DocumentWriter::DocumentWriter(const char* outPath) {
     std::cout << "[Document Writer] File " << outPath << " opened." << '\n';
@@ -12,9 +13,11 @@ DocumentWriter::~DocumentWriter() {
     std::cout << "[Document Writer] File closed." << '\n';
 }
 
-void DocumentWriter::saveAsCSV(std::vector<std::pair<std::string, int>> &vectorOfPairs) {
+void DocumentWriter::SaveAsCSV(std::vector<std::pair<std::string, int>> &vectorOfPairs, const int total) {
+
     for (const auto& [first, second]: vectorOfPairs) {
-        out << first << ',' << second << '\n';
+        double freqPercent = static_cast<double>(second) / total * 100;
+        out << std::fixed << std::setprecision(2) << first << ',' << second << ',' << freqPercent << '%' << '\n';
     }
     std::cout << "[Document Writer] Saved as CSV." << "\n";
 }

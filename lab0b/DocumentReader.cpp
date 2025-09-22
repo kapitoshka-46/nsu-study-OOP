@@ -24,6 +24,6 @@ std::string &DocumentReader::GetNewLine() {
     return buffer;
 }
 
-bool DocumentReader::IsEnd() {
+bool DocumentReader::IsEnd() const {
     return isEnd;
 }
