@@ -24,7 +24,7 @@ private:
 
 
 public:
-    WordCounter(const std::string& inputPath);
+    explicit WordCounter(const std::string& inputPath);
     ~WordCounter() = default;
 
     int TotalWordsCount() const;

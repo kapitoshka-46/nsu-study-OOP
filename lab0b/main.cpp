@@ -1,10 +1,7 @@
-#include <fstream>
 #include <iostream>
-#include <vector>
 
 #include "WordCounter.h"
 #include "Writer.h"
-#include "Reader.h"
 
 
 int main(int argc, char** argv) {
@@ -15,12 +12,14 @@ int main(int argc, char** argv) {
         std::cout << "Invalid argument. Usage: "<< argv[0] << " input.txt output.csv" <<'\n';
         return 0;
     }
+    const auto in_path = argv[1];
+    const auto out_path = argv[2];
 
-    auto counter = WordCounter(argv[1]);
-    const auto &freqVector = counter.GetStatistic();
+    auto counter = WordCounter(in_path);
+    const auto &freqTable = counter.GetStatistic();
 
-    auto out = Writer(argv[2]);
-    out.SaveAsCSV(freqVector, counter.TotalWordsCount());
+    auto out = Writer(out_path);
+    out.SaveAsCSV(freqTable, counter.TotalWordsCount());
 
     return 0;
 }
