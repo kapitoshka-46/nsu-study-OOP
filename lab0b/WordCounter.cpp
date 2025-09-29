@@ -38,8 +38,8 @@ const std::vector<std::pair<const std::string *, int> > &WordCounter::GetStatist
 
     auto line = input.GetNewLine();
     while (not input.IsEnd()) {
-        line = input.GetNewLine();
         CountWordsAndMap_(line);
+        line = input.GetNewLine();
     }
     isCounted = true;
     return GetSortedVector_();

@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
         std::cout << "Invalid argument. Usage: "<< argv[0] << " input.txt output.csv" <<'\n';
         return 0;
     }
-    const auto in_path = argv[1];
-    const auto out_path = argv[2];
+    const char* in_path = argv[1];
+    const char* out_path = argv[2];
 
     WordCounter counter {in_path};
     const auto &freqTable = counter.GetStatistic();
