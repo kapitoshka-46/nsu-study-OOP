@@ -32,11 +32,16 @@ void WordCounter::CountWordsAndMap_(const std::string &text) {
 }
 
 const std::vector<std::pair<const std::string *, int> > &WordCounter::GetStatistic() {
+    if (isCounted) {
+        return freqVector;
+    }
+
     auto line = input.GetNewLine();
     while (not input.IsEnd()) {
         line = input.GetNewLine();
         CountWordsAndMap_(line);
     }
+    isCounted = true;
     return GetSortedVector_();
 }
 

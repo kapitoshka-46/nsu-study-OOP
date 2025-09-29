@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	std::cout << Module2::getMyName() << "\n";
 
 	//using namespace Module2; // (B)
-	//std::cout << getMyName() << "\n"; // COMPILATION ERROR (C)
+	std::cout << Module2::getMyName() << "\n"; // COMPILATION ERROR (C)
 
 	using Module2::getMyName;
 	std::cout << getMyName() << "\n"; // (D)

@@ -15,10 +15,10 @@ int main(int argc, char** argv) {
     const auto in_path = argv[1];
     const auto out_path = argv[2];
 
-    auto counter = WordCounter(in_path);
+    WordCounter counter {in_path};
     const auto &freqTable = counter.GetStatistic();
 
-    auto out = Writer(out_path);
+    Writer out {out_path};
     out.SaveAsCSV(freqTable, counter.TotalWordsCount());
 
     return 0;

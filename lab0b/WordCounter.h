@@ -13,11 +13,13 @@
 
 class WordCounter {
 private:
+    int totalWords {};
+    bool isCounted {};
 
     Reader input;
     std::map<std::string, int> freqMap {};
     std::vector<std::pair<const std::string *, int>> freqVector{};
-    int totalWords {};
+
 
     void CountWordsAndMap_(const std::string &text);
     const std::vector<std::pair<const std::string *, int>> &GetSortedVector_();
