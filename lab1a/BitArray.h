@@ -5,15 +5,22 @@
 #include <vector>
 #include <algorithm>
 
+
 //В этой задаче для простоты не требуется делать контейнер шаблонным,
 //но это вполне допускается по желанию студента.
+enum class operation {
+    AND,
+    OR,
+    XOR,
+};
+
 class BitArray
 {
 private:
     std::vector<unsigned char> bytes;
     int size_bits {};
 
-    int size_bytes_();
+    int size_bytes_() const;
 
 public:
     BitArray() = default;
@@ -92,9 +99,8 @@ public:
     // ------------- My own functions ------------- //
     static bool is_equal(const BitArray & a, const BitArray & b);
     static bool is_not_equal(const BitArray & a, const BitArray & b);
+    static BitArray do_bit_operation(const BitArray & a, const BitArray & b, operation op);
 
-    static BitArray do_xor(const BitArray & a, const BitArray & b);
-    static BitArray do_and(const BitArray & a, const BitArray & b);
 
 };  // --------------------END OF CLASS-----------------------//
 
@@ -104,6 +110,7 @@ public:
     BitArray operator&(const BitArray& b1, const BitArray& b2);
     BitArray operator|(const BitArray& b1, const BitArray& b2);
     BitArray operator^(const BitArray& b1, const BitArray& b2);
+    std::ostream& operator<<(std::ostream & lhs, const BitArray & b1);
 
 
 
