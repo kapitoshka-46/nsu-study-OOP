@@ -7,7 +7,7 @@ int main() {
     constexpr int value = 11;
 
     std::cout << "--- My realisation ---\n";
-    auto bitarr = BitArray(num_bits, value);
+    BitArray bitarr {num_bits, value};
     bitarr.set(15);
     std::cout << bitarr.to_string() << std::endl;
 

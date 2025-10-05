@@ -94,7 +94,7 @@ public:
     static bool is_not_equal(const BitArray & a, const BitArray & b);
 
     static BitArray do_xor(const BitArray & a, const BitArray & b);
-    static BitArray do_and();
+    static BitArray do_and(const BitArray & a, const BitArray & b);
 
 };  // --------------------END OF CLASS-----------------------//
 

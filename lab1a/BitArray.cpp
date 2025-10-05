@@ -146,6 +146,19 @@ BitArray& BitArray::operator=(const BitArray &b) {
     return *this;
 }
 
+void BitArray::resize(int num_bits, bool value) {
+    int extra_size = num_bits / 8;
+    if (num_bits % 8 != 0) {
+        extra_size++;
+    }
+    bytes.reserve(size_bytes_() + extra_size);
+    for (int i = size_bits; i % 8 != 0; i++) {
+        set(i - 1, value);
+    }
+    uchar element_of_value = value == true ? 255 : 0;
+    std::fill(bytes.end() - extra_size , bytes.end(), element_of_value);
+}
+
 bool BitArray::operator[](int i) const {
     return bytes[i / 8] >> i % 8;
 }
@@ -156,6 +169,13 @@ BitArray BitArray::operator~() const {
         byte = ~byte;
     }
     return new_arr;
+}
+
+
+BitArray BitArray::do_and(const BitArray &a, const BitArray &b) {
+    if (a.size_bits != b.size_bits) {
+        throw error;
+    }
 }
 
 bool operator==(const BitArray & a, const BitArray & b) {
