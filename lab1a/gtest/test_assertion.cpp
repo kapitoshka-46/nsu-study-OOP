@@ -65,8 +65,6 @@ TEST_P(BitArrayTest, PushBackTrueBit) {
     ASSERT_EQ(last_bit, expected);
 }
 
-TEST_P(BitArrayTest, )
-
 INSTANTIATE_TEST_SUITE_P(
     ForInitialSize,
     BitArrayTest,
