@@ -4,6 +4,9 @@ project(lab1a)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(lab1a
-        main.cpp
-        BitArray.h
-        BitArray.cpp)
+        src/main.cpp
+        src/BitArray.h
+        src/BitArray.cpp
+        )
+
+add_subdirectory(gtest)

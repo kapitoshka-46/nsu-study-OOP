@@ -1,6 +1,7 @@
 #include "BitArray.h"
 
 #include <iostream>
+
 #include <gtest/gtest.h>
 
 using uchar = unsigned char;
@@ -15,7 +16,14 @@ BitArray::BitArray(int num_bits, const unsigned long value)
 
     if (value != 0) {
         for (int i = 0; i < bytes.size(); i++) {
-            bytes[i] = static_cast<uchar>(value >> (i * 8) & 255);
+            unsigned shift = i * 8;
+            if (shift >= sizeof(decltype(value)) * 8) {
+                // на самом деле процессоры делают value >> (shift % 64)
+                // такой сдвиг приведёт к неккоректному заполнению массива
+                // к тому же, value can't be bo
+                break;
+            }
+            bytes[i] = static_cast<uchar>(value >> shift);
         }
     }
 }
@@ -48,6 +56,7 @@ std::string BitArray::to_string() const {
     const BitArray &ref = *this;
     for (int i = 0; i < size_bits; i++) {
         str.at(size_bits - i - 1) = ref[i] == 0 ? '0' : '1';
+
     }
 
     return str;
@@ -128,6 +137,7 @@ void BitArray::swap(BitArray &b) {
 
 void BitArray::clear() {
     bytes.clear();
+    size_bits = 0;
 }
 
 BitArray &BitArray::reset(int n) {
@@ -200,13 +210,15 @@ BitArray &BitArray::set() {
 
 
 void BitArray::push_back(bool bit) {
-    if (size_bits % 8 == 0) {
-        bytes.push_back(static_cast<uchar>(bit));
+    int prev_size_bits = size_bits;
+    size_bits += 1;
+    if (prev_size_bits % 8 == 0) {
+        bytes.push_back(bit);
     }
     else {
-        set(size_bits, bit);
+        set(prev_size_bits, bit);
     }
-    size_bits += 1;
+
 }
 
 

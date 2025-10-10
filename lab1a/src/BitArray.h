@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <algorithm>   // for any_of
 
 
 //В этой задаче для простоты не требуется делать контейнер шаблонным,
