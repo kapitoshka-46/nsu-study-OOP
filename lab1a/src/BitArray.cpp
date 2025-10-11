@@ -39,7 +39,10 @@ int BitArray::size() const {
 }
 
 bool BitArray::empty() const {
-    return size_bits == 0;
+    if (size_bits == 0) {
+        return true;
+    }
+    return false;
 }
 
 int BitArray::size_bytes_() const {
@@ -54,11 +57,10 @@ std::string BitArray::to_string() const {
     std::string str;
     str.resize(size_bits);
     const BitArray &ref = *this;
+
     for (int i = 0; i < size_bits; i++) {
         str.at(size_bits - i - 1) = ref[i] == 0 ? '0' : '1';
-
     }
-
     return str;
 }
 
