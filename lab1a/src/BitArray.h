@@ -17,6 +17,7 @@ enum class operation {
 class BitArray
 {
 private:
+    static constexpr size_t size_elem = sizeof(unsigned char) * 8;
     std::vector<unsigned char> bytes;
     int size_bits {};
 
