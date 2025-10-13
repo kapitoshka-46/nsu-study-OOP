@@ -6,6 +6,7 @@
 using std::string;
 using std::bitset;
 using std::make_pair;
+using std::make_tuple;
 using boost::dynamic_bitset;
 
 template<size_t sz>
@@ -17,6 +18,13 @@ constexpr auto create_params_with_1_bit() {
     }
     return pairs;
 }
+
+bool isEq(const BitArray *a, const dynamic_bitset<> *b) {
+    string b_str;
+    boost::to_string(*b, b_str);
+    return a->to_string() == b_str;
+}
+
 
 class BitArrayTest : public ::testing::TestWithParam<std::pair<int, unsigned long>> {
 public:
@@ -34,10 +42,23 @@ public:
 };
 
 
-bool isEq(const BitArray *a, const dynamic_bitset<> *b) {
-    string b_str;
-    boost::to_string(*b, b_str);
-    return a->to_string() == b_str;
+TEST_P(BitArrayTest, BitShiftLeft) {
+    for (int i = 0; i < arr->size(); i++) {
+        BitArray shifted = *arr << i;
+        dynamic_bitset<> expected = *boost_arr << i;
+        ASSERT_PRED2(isEq, &shifted, &expected);
+    }
+
+}
+
+TEST_P(BitArrayTest, BitShiftRight) {
+    for (int i = 0; i < arr->size(); i++) {
+        BitArray shifted = *arr >> i;
+        dynamic_bitset<> expected = *boost_arr >> i;
+
+        ASSERT_PRED2(isEq, &shifted, &expected);
+    }
+
 }
 
 TEST_P(BitArrayTest, InitialSize) {
@@ -68,16 +89,25 @@ TEST_P(BitArrayTest, Clear) {
 }
 
 TEST_P(BitArrayTest, PushBackTrueBit) {
+    int prev_sz = arr->size();
     arr->push_back(true);
     bool expected = true;
 
     bool last_bit = arr->operator[](arr->size()-1);
 
     ASSERT_EQ(last_bit, expected);
+    ASSERT_EQ(arr->size(), prev_sz + 1);
+}
+
+TEST(BitArrayTest, GetOperatorOutOfRange) {
+    BitArray arr {3, 15};
+    ASSERT_THROW(arr[-1], std::out_of_range);
+    ASSERT_THROW(arr[3], std::out_of_range);
+    ASSERT_THROW(arr[99], std::out_of_range);
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    ForInitialSize,
+    TestValues,
     BitArrayTest,
     ::testing::Values(
         make_pair(5, 13),

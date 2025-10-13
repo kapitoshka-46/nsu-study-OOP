@@ -8,7 +8,8 @@ include_directories(${gtest_SORUCE_DIR}/include
 include_directories(../src)
 
 add_executable(gtest_run test_assertion.cpp
-                ../src/BitArray.cpp)
+                ../src/BitArray.cpp
+        two_arrays_test.cpp)
 
 target_link_libraries(gtest_run GTest::gtest GTest::gtest_main)
 

@@ -17,7 +17,7 @@ enum class operation {
 class BitArray
 {
 private:
-    static constexpr size_t size_elem = sizeof(unsigned char) * 8;
+    static constexpr int SIZE_ELEM = sizeof(unsigned char) * 8;
     std::vector<unsigned char> bytes;
     int size_bits {};
 
@@ -36,7 +36,7 @@ public:
     const std::vector<unsigned char> &data() const;
 
     //Обменивает значения двух битовых массивов.
-    void swap(BitArray& b);
+    void swap(BitArray& other);
 
     BitArray& operator=(const BitArray& b);
 
@@ -54,8 +54,11 @@ public:
     //Битовые операции над массивами.
     //Работают только на массивах одинакового размера.
     //Обоснование реакции на параметр неверного размера входит в задачу.
+    /** @throw std::invalid_argument exception if different size */
     BitArray& operator&=(const BitArray& b);
+    /** @throw std::invalid_argument exception if different size */
     BitArray& operator|=(const BitArray& b);
+    /** @throw std::invalid_argument exception if different size */
     BitArray& operator^=(const BitArray& b);
 
     //Битовый сдвиг с заполнением нулями.
@@ -65,11 +68,13 @@ public:
     BitArray operator>>(int n) const;
 
     //Устанавливает бит с индексом n в значение val.
+    /** @throw std::invalid_argument exception if different size */
     BitArray& set(int n, bool val = true);
     //Заполняет массив истиной.
     BitArray& set();
 
     //Устанавливает бит с индексом n в значение false.
+    /** @throw std::invalid_argument exception if different size */
     BitArray& reset(int n);
     //Заполняет массив ложью.
     BitArray& reset();
@@ -88,6 +93,7 @@ public:
 
 
     //Возвращает значение бита по индексу i.
+    /** @throw std::out_of_range if i < 0 or >= size */
     bool operator[](int i) const;
 
     int size() const;
@@ -99,7 +105,7 @@ public:
 
     // ------------- My own functions ------------- //
     static bool is_equal(const BitArray & a, const BitArray & b);
-    static bool is_not_equal(const BitArray & a, const BitArray & b);
+    static bool is_not_equal(const BitArray & a, const BitArray & b);/** @throw std::invalid_argument exception if different size */
     static BitArray do_bit_operation(const BitArray & a, const BitArray & b, operation op);
 
 
@@ -108,9 +114,13 @@ public:
     bool operator==(const BitArray & a, const BitArray & b);
     bool operator!=(const BitArray & a, const BitArray & b);
 
+/** @throw std::invalid_argument exception if different size */
     BitArray operator&(const BitArray& b1, const BitArray& b2);
+/** @throw std::invalid_argument exception if different size */
     BitArray operator|(const BitArray& b1, const BitArray& b2);
+/** @throw std::invalid_argument exception if different size */
     BitArray operator^(const BitArray& b1, const BitArray& b2);
+
     std::ostream& operator<<(std::ostream & lhs, const BitArray & b1);
 
 

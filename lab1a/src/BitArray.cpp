@@ -16,8 +16,8 @@ BitArray::BitArray(int num_bits, const unsigned long value)
 
     if (value != 0) {
         for (int i = 0; i < bytes.size(); i++) {
-            unsigned shift = i * 8;
-            if (shift >= sizeof(decltype(value)) * 8) {
+            unsigned shift = i * SIZE_ELEM;
+            if (shift >= sizeof(decltype(value)) * SIZE_ELEM) {
                 // на самом деле процессоры делают value >> (shift % 64)
                 // такой сдвиг приведёт к неккоректному заполнению массива
                 // к тому же, value can't be bo
@@ -27,10 +27,6 @@ BitArray::BitArray(int num_bits, const unsigned long value)
         }
     }
 }
-
-
-// ----------------------------- static methods ------------------------------ //
-
 
 
 // ------------------------------ const methods ----------------------------- //
@@ -46,8 +42,8 @@ bool BitArray::empty() const {
 }
 
 int BitArray::size_bytes_() const {
-    int num_bytes = size_bits / 8;
-    if (size_bits % 8 != 0) {
+    int num_bytes = size_bits / SIZE_ELEM;
+    if (size_bits % SIZE_ELEM != 0) {
         num_bytes += 1;
     }
     return num_bytes;
@@ -98,13 +94,55 @@ bool BitArray::is_not_equal(const BitArray &a, const BitArray &b) {
     return a.data() != b.data();
 }
 
+BitArray BitArray::operator<<(int n) const {
+    int offset_in_elem = n % SIZE_ELEM;
+    int global_offset = n / SIZE_ELEM;
+    BitArray new_arr {size_bits};
+
+    if (global_offset > size_bits) {
+        return new_arr;
+    }
+
+    new_arr.bytes.at(global_offset) = bytes.at(0) << offset_in_elem;
+    int sz_bytes = size_bytes_();
+    for (int i = global_offset + 1; i < sz_bytes; ++i) {
+        // let shidt = 3
+        // ______xxx from prev byte
+        // xxxxxx___ from current byte
+        auto from_prev = bytes.at(i - global_offset - 1) >> (SIZE_ELEM - offset_in_elem);
+        auto from_new = bytes.at(i - global_offset) << offset_in_elem;
+        new_arr.bytes.at(i) = from_prev | from_new;
+    }
+    return new_arr;
+}
+
+
+BitArray BitArray::operator>>(int n) const {
+    int offset_in_elem = n % SIZE_ELEM;
+    int global_offset = n / SIZE_ELEM;
+    BitArray new_arr {size_bits};
+
+    if (global_offset > size_bits) {
+        return new_arr;
+    }
+
+    int sz = size_bytes_();
+    for (int i = 0; i < sz - global_offset - 1; ++i) {
+        auto from_next = bytes.at(i+global_offset + 1) << (SIZE_ELEM - offset_in_elem);
+        auto from_curr = bytes.at(i + global_offset) >> offset_in_elem;
+        new_arr.bytes.at(i) = from_next | from_curr;
+    }
+    new_arr.bytes.at(sz-global_offset - 1) = bytes.at(sz - 1) >> offset_in_elem;
+    return new_arr;
+}
+
 BitArray BitArray::do_bit_operation(const BitArray &a, const BitArray &b, const operation op) {
     if (a.size_bits != b.size_bits) {
         throw std::invalid_argument("The arrays must be the shame size");
     }
     int sz = a.size_bits;
     BitArray result {};
-    result.bytes.reserve(sz);
+    result.bytes.reserve(a.size_bytes_());
     result.size_bits = sz;
 
     auto op_func = [op](decltype(a.bytes[0]) elem1, decltype(b.bytes[0]) elem2) {
@@ -125,7 +163,7 @@ BitArray BitArray::do_bit_operation(const BitArray &a, const BitArray &b, const 
     }
 
     if (op == operation::XOR) {     // reset bits which has been `false` in the last byte before xor.
-        for (int i = sz - sz % 8; i < sz; i++) {
+        for (int i = sz - sz % SIZE_ELEM; i < sz; i++) {
             result.reset(i - 1);
         }
     }
@@ -133,8 +171,12 @@ BitArray BitArray::do_bit_operation(const BitArray &a, const BitArray &b, const 
 }
 
 // ------------------------------- methods ------------------------------ //
-void BitArray::swap(BitArray &b) {
-    bytes.swap(b.bytes);
+void BitArray::swap(BitArray &other) {
+    bytes.swap(other.bytes);
+
+    int tmp_sz = size_bits;
+    size_bits = other.size_bits;
+    other.size_bits = tmp_sz;
 }
 
 void BitArray::clear() {
@@ -146,8 +188,8 @@ BitArray &BitArray::reset(int n) {
     if (n < 0) {
         throw std::out_of_range("Cannot reset negative bit");
     }
-    int i = n / 8;
-    auto mask = ~(1 << (n % 8));
+    int i = n / SIZE_ELEM;
+    auto mask = ~(1 << (n % SIZE_ELEM));
     bytes[i] = bytes[i]  &  mask;
     return *this;
 }
@@ -156,45 +198,8 @@ BitArray &BitArray::reset() {
     return *this;
 }
 
-
-BitArray BitArray::operator<<(int n) const {
-    int offset_in_elem = n % 8;
-    int global_offset = n / 8;
-    BitArray new_arr {size_bits};
-
-    if (global_offset > size_bits) {
-        return new_arr;
-    }
-
-    new_arr.bytes.at(global_offset) = bytes.at(0) << offset_in_elem;
-    for (int i = global_offset + 1; i < size_bytes_(); ++i) {
-        new_arr.bytes.at(i) = (bytes.at(i - global_offset) << offset_in_elem) | (bytes.at(i - global_offset - 1) >> offset_in_elem);
-    }
-
-    return new_arr;
-}
-
-
-BitArray BitArray::operator>>(int n) const {
-    int offset_in_elem = n % 8;
-    int global_offset = n / 8;
-    BitArray new_arr {size_bits};
-
-    if (global_offset > size_bits) {
-        return new_arr;
-    }
-
-    int sz = size_bytes_();
-    for (int i = 0; i < sz - global_offset - 1; ++i) {
-        new_arr.bytes.at(i) = (bytes.at(i + global_offset) >> offset_in_elem) | (bytes.at(i + global_offset + 1) << offset_in_elem);
-    }
-    new_arr.bytes.at(sz - global_offset - 1) = bytes.at(sz - 1) >> offset_in_elem;
-
-    return new_arr;
-}
-
 BitArray &BitArray::set(int n, bool val) {
-    int i = n / 8;
+    int i = n / SIZE_ELEM;
     if (n < 0) {
         throw std::out_of_range("Cannot set negative bit");
     }
@@ -202,11 +207,11 @@ BitArray &BitArray::set(int n, bool val) {
         throw std::out_of_range("Cannot set bit >= size");
     }
     reset(n);
-    bytes[i] = bytes[i] | val << (n % 8);
+    bytes[i] = bytes[i] | val << (n % SIZE_ELEM);
     return *this;
 }
 BitArray &BitArray::set() {
-    std::fill(bytes.begin(), bytes.end(), 255);
+    std::fill(bytes.begin(), bytes.end(), (2 << SIZE_ELEM) - 1);
     return *this;
 }
 
@@ -214,7 +219,7 @@ BitArray &BitArray::set() {
 void BitArray::push_back(bool bit) {
     int prev_size_bits = size_bits;
     size_bits += 1;
-    if (prev_size_bits % 8 == 0) {
+    if (prev_size_bits % SIZE_ELEM == 0) {
         bytes.push_back(bit);
     }
     else {
@@ -225,7 +230,11 @@ void BitArray::push_back(bool bit) {
 
 
 // ---------------------------- operators ------------------------------ //
+
+
+
 BitArray & BitArray::operator&=(const BitArray &b) {
+
     *this = *this & b;
     return *this;
 }
@@ -253,6 +262,7 @@ BitArray & BitArray::operator>>=(int n) {
 BitArray& BitArray::operator=(const BitArray &b) {
     if (&b != this) {
         bytes = b.bytes;
+        size_bits = b.size_bits;
     }
     return *this;
 }
@@ -265,19 +275,22 @@ void BitArray::resize(int num_bits, bool value) {
 
     size_bits = num_bits;
     if (num_bits > prev_sz_bits) {
-        for (int i = prev_sz_bits; i % 8 != 0 && i < num_bits; i++) {
+        for (int i = prev_sz_bits; i % SIZE_ELEM != 0 && i < num_bits; i++) {
             set(i, value);
         }
     }
     bytes.resize(size_bytes_());
     if (value != 0) {
-        std::fill(bytes.begin() + prev_sz_bits / 8 + (prev_sz_bits % 8 != 0), bytes.end(), 255);
+        std::fill(bytes.begin() + prev_sz_bits / SIZE_ELEM + (prev_sz_bits % SIZE_ELEM != 0), bytes.end(), (2 << SIZE_ELEM) - 1);
     }
 
 }
 
 bool BitArray::operator[](int i) const {
-    return (bytes[i / 8] >> (i % 8)) & 1;
+    if (i < 0 or i >= size_bits) {
+        throw std::out_of_range("Can't access the element not in range of BitArray");
+    }
+    return (bytes[i / SIZE_ELEM] >> (i % SIZE_ELEM)) & 1;
 }
 
 BitArray BitArray::operator~() const {
@@ -302,11 +315,11 @@ BitArray operator&(const BitArray &b1, const BitArray &b2) {
     return result;
 }
 BitArray operator|(const BitArray &b1, const BitArray &b2) {
-    BitArray result = BitArray::do_bit_operation(b1, b2, operation::XOR);
+    BitArray result = BitArray::do_bit_operation(b1, b2, operation::OR);
     return result;
 }
 BitArray operator^(const BitArray &b1, const BitArray &b2) {
-    BitArray result = BitArray::do_bit_operation(b1, b2, operation::OR);
+    BitArray result = BitArray::do_bit_operation(b1, b2, operation::XOR);
     return result;
 }
 
