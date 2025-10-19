@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
-project(lab0b)
+project(game-of-life)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(lab0b main.cpp)
+add_executable(game-of-life main.cpp)
