@@ -13,7 +13,8 @@ BitArray::BitArray(int num_bits, const unsigned long value)
         throw std::invalid_argument("Cannot create array with negative size");
     }
     bytes.resize(size_bytes_()); // size_bits should be initialized before this call
-
+    // TODO округление интересное
+    // TODO bit twiddle hacks
     if (value != 0) {
         for (int i = 0; i < bytes.size(); i++) {
             unsigned shift = i * SIZE_ELEM;
@@ -106,7 +107,7 @@ BitArray BitArray::operator<<(int n) const {
     new_arr.bytes.at(global_offset) = bytes.at(0) << offset_in_elem;
     int sz_bytes = size_bytes_();
     for (int i = global_offset + 1; i < sz_bytes; ++i) {
-        // let shidt = 3
+        // let shift = 3
         // ______xxx from prev byte
         // xxxxxx___ from current byte
         auto from_prev = bytes.at(i - global_offset - 1) >> (SIZE_ELEM - offset_in_elem);
@@ -286,11 +287,24 @@ void BitArray::resize(int num_bits, bool value) {
 
 }
 
-bool BitArray::operator[](int i) const {
+bool BitArray::get(int i) const{
     if (i < 0 or i >= size_bits) {
         throw std::out_of_range("Can't access the element not in range of BitArray");
     }
     return (bytes[i / SIZE_ELEM] >> (i % SIZE_ELEM)) & 1;
+}
+bool BitArray::operator[](int i) const {
+    if (i < 0 or i >= size_bits) {
+        throw std::out_of_range("Can't access the element not in range of BitArray");
+    }
+    return get(i);
+}
+
+proxyAt BitArray::operator[](int i) {
+    if (i < 0 or i >= size_bits) {
+        throw std::out_of_range("i <= 0 or i >= size");
+    }
+    return proxyAt {*this, i};
 }
 
 BitArray BitArray::operator~() const {
@@ -325,6 +339,17 @@ BitArray operator^(const BitArray &b1, const BitArray &b2) {
 
 std::ostream& operator<<(std::ostream &lhs, const BitArray &b1) {
     return lhs << b1.to_string();
+}
+
+proxyAt::proxyAt(BitArray& arr, int index): arr(arr), index(index) {};
+
+proxyAt &proxyAt::operator=(bool bit) {
+    arr.set(index, bit);
+    return *this;
+}
+
+proxyAt::operator bool() const {
+    return arr.get(index);
 }
 
 

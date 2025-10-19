@@ -41,14 +41,14 @@ public:
     }
 };
 
-
+// TODO i > arr.size()
 TEST_P(BitArrayTest, BitShiftLeft) {
     for (int i = 0; i < arr->size(); i++) {
         BitArray shifted = *arr << i;
         dynamic_bitset<> expected = *boost_arr << i;
         ASSERT_PRED2(isEq, &shifted, &expected);
+        // TODO EXPECT_EQ(a[i], ture) << "i=" << i
     }
-
 }
 
 TEST_P(BitArrayTest, BitShiftRight) {
@@ -130,6 +130,40 @@ INSTANTIATE_TEST_SUITE_P(
     )
 );
 
+TEST_P(BitArrayTest, Get) {
+    for (int i = 0; i < boost_arr->size(); ++i) {
+        ASSERT_EQ(arr->get(i), boost_arr->at(i));
+    }
+}
+
+TEST_P(BitArrayTest, GetOutOfRange) {
+    ASSERT_THROW(arr->get(-5), std::out_of_range);
+    ASSERT_THROW(arr->get(arr->size()), std::out_of_range);
+    ASSERT_THROW(arr->get(arr->size() + 1000), std::out_of_range);
+    ASSERT_THROW(arr->get(-1000), std::out_of_range);
+}
+
+TEST_P(BitArrayTest, ResetAtIndex) {
+    BitArray& myarr = *arr;
+    for (int i = 0; i < myarr.size(); i++) {
+        myarr[i] = true;
+        bool bit = myarr.get(i);
+        bool expected = true;
+        ASSERT_EQ(bit, expected) << "At i = " << i;;
+    }
+}
+
+TEST_P(BitArrayTest, SetAtIndex) {
+    BitArray& myarr = *arr;
+    for (int i = 0; i < myarr.size(); i++) {
+        myarr[i] = false;
+        bool bit = myarr.get(i);
+        bool expected = false;
+        ASSERT_EQ(bit, expected) << "At i = " << i;;
+    }
+}
+
+
 TEST_P(BitArrayTest, Reset) {
     BitArray& reseted = arr->reset();
     dynamic_bitset<> expected = boost_arr->reset();
@@ -166,6 +200,21 @@ TEST_P(BitArrayTest, Any) {
     ASSERT_EQ(is_any, expected);
 }
 
+TEST(BitArrayTest, OperatorAtOutOfRange) {
+    BitArray arr {99, 12311};
+    ASSERT_THROW(arr[-1], std::out_of_range);
+    ASSERT_THROW(arr[99], std::out_of_range);
+    ASSERT_THROW(arr[10000], std::out_of_range);
+}
+
+TEST_P(BitArrayTest, OperatorAt) {
+    for (int i = 0; i < arr->size(); i++) {
+        bool bit = arr->operator[](i);
+        bool expected = boost_arr->operator[](i);
+        ASSERT_EQ(bit, expected) << "i = " << i;
+    }
+}
+
 TEST_P(BitArrayTest, None) {
     bool is_any = arr->none();
     bool expected = boost_arr->none();
@@ -191,6 +240,21 @@ TEST_P(BitArrayTest, Empty) {
     bool expected = boost_arr->empty();
 
     ASSERT_EQ(is_empty, expected);
+}
+
+TEST(BitArrayTest, NegativeResize) {
+    BitArray arr {13, 15};
+    ASSERT_THROW(arr.resize(-10), std::invalid_argument);
+}
+
+TEST(BitArrayTest, ResizeToZero) {
+    BitArray arr {13, 15};
+    BitArray expected {0, 0};
+    arr.resize(0);
+
+    ASSERT_EQ(arr.size(), expected.size());
+    ASSERT_TRUE(arr == expected);
+
 }
 
 TEST(BitArrayTest, ResizeDown) {    //TODO test excpetions! test size < 0!!

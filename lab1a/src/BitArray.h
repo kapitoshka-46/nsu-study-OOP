@@ -14,15 +14,15 @@ enum class operation {
     XOR,
 };
 
-class BitArray
-{
+class proxyAt;
+
+class BitArray {
 private:
     static constexpr int SIZE_ELEM = sizeof(unsigned char) * 8;
     std::vector<unsigned char> bytes;
     int size_bits {};
 
     int size_bytes_() const;
-
 public:
     BitArray() = default;
     ~BitArray() = default;
@@ -44,6 +44,7 @@ public:
     //Изменяет размер массива. В случае расширения, новые элементы
     //инициализируются значением value.
     void resize(int num_bits, bool value = false);
+
     //Очищает массив.
     void clear();
     //Добавляет новый бит в конец массива. В случае необходимости
@@ -66,6 +67,9 @@ public:
     BitArray& operator>>=(int n);
     BitArray operator<<(int n) const;
     BitArray operator>>(int n) const;
+
+
+    bool get(int i) const;
 
     //Устанавливает бит с индексом n в значение val.
     /** @throw std::invalid_argument exception if different size */
@@ -94,6 +98,7 @@ public:
 
     //Возвращает значение бита по индексу i.
     /** @throw std::out_of_range if i < 0 or >= size */
+    proxyAt operator[](int i);
     bool operator[](int i) const;
 
     int size() const;
@@ -105,24 +110,34 @@ public:
 
     // ------------- My own functions ------------- //
     static bool is_equal(const BitArray & a, const BitArray & b);
-    static bool is_not_equal(const BitArray & a, const BitArray & b);/** @throw std::invalid_argument exception if different size */
+    static bool is_not_equal(const BitArray & a, const BitArray & b);
+    /** @throw std::invalid_argument exception if different size */
     static BitArray do_bit_operation(const BitArray & a, const BitArray & b, operation op);
 
 
 };  // --------------------END OF CLASS-----------------------//
 
-    bool operator==(const BitArray & a, const BitArray & b);
-    bool operator!=(const BitArray & a, const BitArray & b);
+class proxyAt {
+    BitArray& arr;
+    int index;
+public:
+    proxyAt& operator=(bool bit);
+    operator bool() const;
+    proxyAt(BitArray& arr, int index);
+};
+
+
+bool operator==(const BitArray & a, const BitArray & b);
+bool operator!=(const BitArray & a, const BitArray & b);
 
 /** @throw std::invalid_argument exception if different size */
-    BitArray operator&(const BitArray& b1, const BitArray& b2);
+BitArray operator&(const BitArray& b1, const BitArray& b2);
 /** @throw std::invalid_argument exception if different size */
-    BitArray operator|(const BitArray& b1, const BitArray& b2);
+BitArray operator|(const BitArray& b1, const BitArray& b2);
 /** @throw std::invalid_argument exception if different size */
-    BitArray operator^(const BitArray& b1, const BitArray& b2);
+BitArray operator^(const BitArray& b1, const BitArray& b2);
 
-    std::ostream& operator<<(std::ostream & lhs, const BitArray & b1);
-
+std::ostream& operator<<(std::ostream & lhs, const BitArray & b1);
 
 
 #endif //BITARRAY_H
