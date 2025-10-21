@@ -15,7 +15,7 @@ public:
 
     virtual void Repeat() = 0;
     virtual int GetNumOfTicks() = 0;
-    virtual Command GetCommand() = 0;
+    virtual ICommand *GetCommand() = 0;
     virtual void ClearAndDisplay() = 0;
 };
 
@@ -30,7 +30,8 @@ public:
 
     int GetNumOfTicks() override;
     void Repeat() override;
-    Command GetCommand() override;
+
+    ICommand *GetCommand() override;
     void ClearAndDisplay() override;
 };
 
