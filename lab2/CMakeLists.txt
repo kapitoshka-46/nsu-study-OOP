@@ -4,7 +4,12 @@ project(game-of-life)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(game-of-life main.cpp
-        TerminalEmulator.cpp
-        TerminalEmulator.h
+        UnixConsole.cpp
+        UnixConsole.h
         Command.cpp
-        Command.h)
+        Command.h
+        Display.cpp
+        Display.h
+        Universe.cpp
+        Universe.h
+)

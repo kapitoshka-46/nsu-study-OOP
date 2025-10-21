@@ -1,5 +1,20 @@
 # Игра жизнь
 
+## Заметки
+
+Есть класс effect. (фабрика). От него наследуется:
+```c++
+class Distor(...) : Effect
+class Mute(...) : Effect
+class Delay(...) : Effect
+
+unique_ptr<effect> fabrix(string name) {
+    if (name == "Distor") return new Distor(...);
+    if (name == "Mute") return new Mute(...);
+    /* ... */
+}
+```
+
 ## Требования
 
 - Считывать вселенную из файла.
