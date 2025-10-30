@@ -1,8 +1,10 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <format>
 #include <vector>
 #include <string>
+#include <fstream>
 
 using VecRules = std::vector<char>;
 using Vec2D = std::vector<std::vector<bool>>;
@@ -16,6 +18,12 @@ struct CellPos {
     int row;
     int col;
 };
+
+inline std::ostream& operator<<(std::ostream &lhs, const CellPos pos) {
+    lhs << std::format("({},{})", pos.row, pos.col);
+    return lhs;
+}
+
 
 class Rules {
 public:
@@ -36,6 +44,7 @@ public:
     int SizeCols();
 
     std::string ToString();
+    int CountAliveAt(CellPos pos);
     void Set(CellPos pos, CellType state=CellType::kAlive);
     void Reset(CellPos pos);  // wrapper for Set(pos, CellType::kDead)
     CellType GetCellState(CellPos pos);

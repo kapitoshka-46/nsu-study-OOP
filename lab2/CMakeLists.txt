@@ -5,4 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(lab2 src/main.cpp
         src/Core.cpp
-        src/Core.h)
+        src/Core.h
+        )
+
+add_subdirectory(test)
