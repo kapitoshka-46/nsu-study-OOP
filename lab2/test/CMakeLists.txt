@@ -9,7 +9,8 @@ include_directories(../src)
 
 add_executable(gtest_run test0.cpp
         ../src/Core.cpp
-        ../src/Core.h)
+        ../src/Core.h
+        Rules.cpp)
 
 target_link_libraries(gtest_run GTest::gtest GTest::gtest_main)
 
