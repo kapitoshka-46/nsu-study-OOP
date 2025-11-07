@@ -3,11 +3,16 @@
 #include <algorithm>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <ranges>
 
 using enum CellType;
 
 
 Field::Field(const std::string &s, int rows, int cols) : rows_(rows), cols_(cols){
+    if (s.length() != rows * cols) {
+        throw std::invalid_argument("string must represent (rows x cols) matrix");
+    }
+
     matrix_.resize(rows);
     for (auto& row : matrix_) {
         row.resize(cols);
@@ -22,6 +27,14 @@ Field::Field(const std::string &s, int rows, int cols) : rows_(rows), cols_(cols
                 Set({y, x}, kAlive);
             }
         }
+    }
+}
+
+// inits zero field
+Field::Field(int rows, int cols) : rows_(rows), cols_(cols){
+    matrix_.resize(rows);
+    for (auto &row : matrix_) {
+        row.resize(cols);
     }
 }
 
@@ -91,13 +104,20 @@ CellType Field::GetCellState(CellPos pos) {
 
 Field& Field::operator=(const Field &other) = default;
 
-bool Rules::ShouldBorn(const int alive) {
-    return std::ranges::any_of(born_, [alive](int x) {return x == alive;});
+bool Rules::ShouldBorn(const int alive) const {
+    return std::ranges::any_of(born, [alive](int x) {return x == alive;});
 }
 
-bool Rules::ShouldSurvival(int alive) {
-    return std::ranges::any_of(survival_, [alive](int x) {return x == alive;});
+bool Rules::ShouldSurvival(int alive) const {
+    return std::ranges::any_of(survival, [alive](int x) {return x == alive;});
+}
 
+VecRules Rules::GetDefaultBorn() {
+    return {3};
+}
+
+VecRules Rules::GetDefaultSurvival() {
+    return {2, 3};
 }
 
 // ---------------------------- UNIVERSE --------------------- //
@@ -107,9 +127,6 @@ void Universe::Step() {
     for (int row = 0; row < field_.Rows(); row++) {
         for (int col = 0; col < field_.Cols(); col++) {
             CellPos pos = {row, col};
-            if (pos.row == 8 and pos.col == 24) {
-                std::cerr << 'r' << std::endl;
-            }
             int alive = field_.CountAliveAt(pos);
             if (field_.IsAlive(pos)) {
                 if (not rules_.ShouldSurvival(alive)) {
@@ -127,4 +144,108 @@ void Universe::Step() {
 
 std::string Universe::ToString() {
     return field_.ToString();
+}
+
+VecRules parse_rules(std::string& s, char prefix) {
+    VecRules rules {};
+    size_t pos = s.find_first_of(prefix);
+    if (pos != std::string::npos) {
+        pos += 1;
+        while (std::isdigit(s[pos])) {
+            pos += 1;
+            rules.push_back(s[pos]);
+        }
+    }
+    return rules;
+}
+
+void move_to_origin(std::vector<CellPos> &cells, CellPos origin) {
+
+}
+CellPos parse_coordinates(std::string& line) {
+    std::istringstream iss {line};
+    int row;
+    int col;
+    iss >> row;
+    iss >> col;
+
+    return CellPos(row, col);
+}
+
+void LoadFromFile(std::ifstream &in, Universe& u) {
+    u.Erase();
+
+
+    std::string line;
+    std::string name = "Unnamed";
+    std::getline(in, line);
+
+    Rules rules;
+    if (line != "#Life 1.06") {
+        std::cout << "Warning: Unknown file format.\n";
+        std::cout << "Please, use \"Life 1.06\" file format\n";
+    }
+    bool is_name_set = false;
+    while (std::getline(in, line) && line[0] == '#') {
+        // #N Name of universe
+        if (line.substr(0, 3) == "#N ") {   // name
+            if (is_name_set) {
+                std::cout <<"Warning: founded more then one names. Using first one\n";
+                continue;
+            }
+            name = line.substr(3);
+            is_name_set = true;
+        }
+        // #R Bxyz/Sabc
+        if (line.substr(0, 3) == "#R ") {    // rules
+            rules.born = parse_rules(line, 'B');
+            rules.survival = parse_rules(line, 'S');
+        }
+    }
+    if (rules.born.empty()) {
+        std::cout << "Warning: No born rules found. Using default: Born if 2 or 3 cells alive.\n";
+        rules.born = Rules::GetDefaultBorn();
+    }
+    if (rules.survival.empty()) {
+        std::cout << "Warning: No survival rules found. Using default: Survive if 3 cell alive.\n";
+        rules.survival = Rules::GetDefaultSurvival();
+    }
+
+    std::vector<CellPos> cells;
+    CellPos max {INT_MIN, INT_MIN};
+    CellPos min {INT_MAX, INT_MAX};
+
+    int delta_row = 0;
+    int delta_col = 0;
+
+    while (std::getline(in, line)) {
+        CellPos cell = parse_coordinates(line);
+        if (cell.row > max.row) {   max.row = cell.row;     }
+        if (cell.col > max.col) {   max.col = cell.col;     }
+        if (cell.row < min.row) {   min.row = cell.row;     }
+        if (cell.col > min.col) {   min.col = cell.col;     }
+
+        delta_row = max.row - min.row;
+        delta_col = max.col - min.col;
+        if (delta_row > kMaxRows) {
+            std::cout << "Error: Figure if file needs more rows then max available rows\n";
+        }
+        if (delta_col > kMaxCols) {
+            std::cout << "Error: Figure in file needs more columns then max available columns\n";
+        }
+        if (delta_row < 0 || delta_col < 0) {
+            throw std::logic_error("min > max ?");
+        }
+        cells.push_back(cell);
+
+    }
+
+    CellPos origin {u.Rows() / 2 - delta_row / 2, u.Cols() / 2 - delta_col / 2};
+    move_to_origin(cells, origin);
+
+
+
+    for (const auto &cell : cells) {
+        u.Set(cell);
+    }
 }
