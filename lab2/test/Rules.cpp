@@ -24,5 +24,4 @@ TEST(Survaival, A) {
     ASSERT_FALSE(r.ShouldSurvival(7));
     ASSERT_FALSE(r.ShouldSurvival(9));
     ASSERT_FALSE(r.ShouldSurvival(10));
-
 }

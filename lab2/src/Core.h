@@ -15,10 +15,25 @@ enum class CellType {
     kDead,
 };
 
+
 struct CellPos {
     int row;
     int col;
+
+    CellPos &operator-=(const CellPos & other) {
+        col -= other.col;
+        row -= other.row;
+        return *this;
+    }
+
+    CellPos &operator+=(const CellPos & other) {
+        col += other.col;
+        row += other.row;
+        return *this;
+    }
 };
+CellPos operator-(const CellPos &lhs, const CellPos &rhs);
+bool operator==(const CellPos &lhs, const CellPos &rhs);
 
 constexpr int kMaxRows = 100;
 constexpr int kMaxCols = 300;
@@ -29,7 +44,9 @@ inline std::ostream& operator<<(std::ostream &lhs, const CellPos pos) {
     return lhs;
 }
 
- 
+void move_to_origin(std::vector<CellPos> &cells, CellPos origin);
+CellPos parse_coordinates(std::string& line);
+
 class Field {
 public:
     explicit Field(const std::string &s, int rows, int cols);
@@ -75,37 +92,34 @@ public:
     static VecRules GetDefaultBorn();
     static VecRules GetDefaultSurvival();
 
-    VecRules born {};
-    VecRules survival {};
+    VecRules born {3};
+    VecRules survival {2, 3};
 };
 
-struct LifeFile_1_06 {
-    std::string name {};
-    std::vector<CellPos> positions {};
-    VecRules born {};
-    VecRules survival {};
-};
+
+
 class Universe {
 
 public:
-    Universe(const Field& field, Rules rules) : field_(field), rules_(std::move(rules)) {};
+    Universe(const Field& field, Rules rules);;
+    Universe(int rows, int cols);
     void Step();
-    void Erase();                       // Erase the field and Rules
-    void Resize(int rows, int cols);
     std::string ToString();
-    void LoadFromFile(std::ifstream &in);
 
     void Set(CellPos pos, CellType state=CellType::kAlive);
-    void Reset(CellPos);
+    void Reset(CellPos pos);
 
-    int Rows();
-    int Cols();
+    int Rows() const;
+    int Cols() const;
+
+    void SetRules(const Rules & rules);
+
 private:
     std::string name {};
     Field field_;
     Rules rules_;
 };
 
-
+void LoadFromFile(std::ifstream &in, Universe& u);
 
 #endif //CORE_H

@@ -40,8 +40,12 @@ int main() {
     //     cout << u.ToString() << endl;
     //     this_thread::sleep_for(350ms);
     // }
-    int rows = 30;
-    int cols = 30;
-    Field field {rows, cols};
+    Universe u {20, 50};
+    ifstream in;
+    in.open("example.txt");
+
+    LoadFromFile(in, u);
+
+    std::cout << u.ToString();
     return 0;
 }
