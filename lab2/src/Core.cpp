@@ -181,6 +181,13 @@ void Universe::SetRules(const Rules &rules) {
     rules_ = rules;
 }
 
+void Universe::SetName(const std::string &s) {
+    if (s.empty()) {
+        throw std::invalid_argument("Cannot set empty name");
+    }
+    name = s;
+}
+
 VecRules parse_rules(std::string& s, char prefix) {
     VecRules rules {};
     size_t pos = s.find_first_of(prefix);
@@ -196,13 +203,15 @@ VecRules parse_rules(std::string& s, char prefix) {
 
 
 CellPos parse_coordinates(std::string& line) {
+    constexpr int ERROR_VAL = INT_MIN;
     std::istringstream iss {line};
-    int col;
-    int row;
+    int col = ERROR_VAL;    // TODO: сделать operator>> который будет в CellPos записывать данные
+    int row = ERROR_VAL;
     iss >> col >> row;
 
     return CellPos(row, col);
 }
+
 
 void LoadFromFile(std::ifstream &in, Universe& u) {
     if (!in) {
@@ -220,12 +229,13 @@ void LoadFromFile(std::ifstream &in, Universe& u) {
     std::string name = "Unnamed";
     std::getline(in, line);
 
-    Rules rules;
+    Rules rules {{}, {}};
     if (line != "#Life 1.06") {
         std::cout << "Warning: Unknown file format.\n";
         std::cout << "Please, use \"Life 1.06\" file format\n";
     }
     bool is_name_set = false;
+    bool is_rools_set = false;
     while (std::getline(in, line)) {
         // #N Name of universe
         if (line[0] == '#') {
@@ -234,17 +244,26 @@ void LoadFromFile(std::ifstream &in, Universe& u) {
                     std::cout <<"Warning: founded more then one names. Using first one\n";
                     continue;
                 }
-                name = line.substr(3);
+                u.SetName(line.substr(3));
                 is_name_set = true;
             }
             // #R Bxyz/Sabc
             if (line.substr(0, 3) == "#R ") {    // rules
+                if (is_rools_set) {
+                    std::cout << "[Warning] founded more then one rules. Using first one\n";
+                    continue;
+                }
+                is_rools_set = true;
                 rules.born = parse_rules(line, 'B');
                 rules.survival = parse_rules(line, 'S');
             }
         }
         else {
             CellPos cell = parse_coordinates(line);
+            if (!cell.IsValid()) {
+                std::cout << "[Warning] Invalid coordinate line: \"" << line << "\"\n";
+                continue;
+            }
             if (cell.row > max.row) {   max.row = cell.row;     }
             if (cell.col > max.col) {   max.col = cell.col;     }
             if (cell.row < min.row) {   min.row = cell.row;     }
@@ -253,11 +272,11 @@ void LoadFromFile(std::ifstream &in, Universe& u) {
             delta_row = max.row - min.row;
             delta_col = max.col - min.col;
             if (delta_row > kMaxRows) {
-                std::cout << "Error: Figure if file needs more rows then max available rows\n";
+                std::cout << "[Error] Figure if file needs more rows then max available rows\n";
                 throw std::logic_error("Not enough rows");
             }
             if (delta_col > kMaxCols) {
-                std::cout << "Error: Figure in file needs more columns then max available columns\n";
+                std::cout << "[Error] Figure in file needs more columns then max available columns\n";
                 throw std::logic_error("Not enough cols");
             }
             if (delta_row < 0 || delta_col < 0) {
@@ -270,19 +289,18 @@ void LoadFromFile(std::ifstream &in, Universe& u) {
 
     }
     if (rules.born.empty()) {
-        std::cout << "Warning: No born rules found. Using default: Born if 2 or 3 cells alive.\n";
+        std::cout << "[Warning] No born rules found. Using default: Born if 3 cells alive.\n";
         rules.born = Rules::GetDefaultBorn();
     }
     if (rules.survival.empty()) {
-        std::cout << "Warning: No survival rules found. Using default: Survive if 3 cell alive.\n";
+        std::cout << "[Warning] No survival rules found. Using default: Survive if 2 or 3 cells alive.\n";
         rules.survival = Rules::GetDefaultSurvival();
     }
 
 
     CellPos origin {u.Rows() / 2 - delta_row / 2, u.Cols() / 2 - delta_col / 2};
-
     for (auto &cell : cells) {
-        cell += origin;
+        cell += origin - min;
         u.Set(cell);
     }
 

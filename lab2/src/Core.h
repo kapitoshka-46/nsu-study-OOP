@@ -1,6 +1,7 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <climits>
 #include <format>
 #include <utility>
 #include <vector>
@@ -15,10 +16,11 @@ enum class CellType {
     kDead,
 };
 
-
+static constexpr int NAN = INT_MIN;
 struct CellPos {
-    int row;
-    int col;
+
+    int row = NAN;
+    int col = NAN;
 
     CellPos &operator-=(const CellPos & other) {
         col -= other.col;
@@ -30,6 +32,9 @@ struct CellPos {
         col += other.col;
         row += other.row;
         return *this;
+    }
+    bool IsValid() const {
+        return row != NAN and col != NAN;
     }
 };
 CellPos operator-(const CellPos &lhs, const CellPos &rhs);
@@ -113,6 +118,8 @@ public:
     int Cols() const;
 
     void SetRules(const Rules & rules);
+
+    void SetName(const std::string & s);
 
 private:
     std::string name {};

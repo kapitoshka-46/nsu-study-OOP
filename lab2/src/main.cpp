@@ -29,23 +29,19 @@ int main() {
     // "---------------------------------------------------"
     // ;
 
-    // Field f{s, 18, 51};
-    // Rules r({3}, {2, 3});
-    // Universe u{f, r};
-    // cout << u.ToString() << endl;
-    //
-    // for (int i = 0; i < 20; i++) {
-    //     std::system("clear");
-    //     u.Step();
-    //     cout << u.ToString() << endl;
-    //     this_thread::sleep_for(350ms);
-    // }
-    Universe u {20, 50};
+
+    Universe u {30, 50};
     ifstream in;
     in.open("example.txt");
 
     LoadFromFile(in, u);
-
     std::cout << u.ToString();
+
+    for (int i = 0;; i++) {
+        std::this_thread::sleep_for(500ms);
+        u.Step();
+        system("clear");
+        std::cout << u.ToString();
+    }
     return 0;
 }
