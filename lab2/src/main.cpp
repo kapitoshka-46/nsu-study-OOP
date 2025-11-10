@@ -14,7 +14,7 @@ int main() {
 
     Universe u {20, 20};
     ifstream in;
-    in.open("pulsar.lif");
+    in.open("flower.lif");
 
     file_handler::LoadFromFile(in, u);
     std::cout << u.ToString();

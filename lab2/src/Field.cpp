@@ -97,8 +97,3 @@ CellType Field::GetCellState(CellPos pos) {
 }
 
 Field& Field::operator=(const Field &other) = default;
-
-Rules::Rules(VecRules born, VecRules survival): born(std::move(born)),
-                                                survival(std::move(survival)) {}
-
-Rules::Rules() = default;

@@ -18,3 +18,8 @@ VecRules Rules::GetDefaultBorn(){
 VecRules Rules::GetDefaultSurvival(){
     return {2, 3};
 }
+
+Rules::Rules(VecRules born, VecRules survival): born(std::move(born)),
+                                                survival(std::move(survival)) {}
+
+Rules::Rules() = default;
