@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "../src/Core.h"
 #include <tuple>
+using namespace game_core;
 
 using enum CellType;
 using std::string;
