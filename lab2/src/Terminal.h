@@ -56,7 +56,7 @@ namespace terminal {
     public:
 
         Terminal(std::istream &in, std::ostream &out);
-
+        
         void Write(const std::string &msg);
         void WriteLine(const std::string &msg);
         void Log(const std::string &msg);

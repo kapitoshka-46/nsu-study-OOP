@@ -76,7 +76,7 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
             }
         }
         else {
-            CellPos cell = parse_coordinates(line);
+            CellPos cell = parse_coordinates_line(line);
             if (!cell.IsValid()) {
                 std::cout << "[Warning] Invalid coordinate line: \"" << line << "\"\n";
                 continue;

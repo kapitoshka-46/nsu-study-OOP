@@ -17,7 +17,7 @@ namespace core {
 
         [[nodiscard]] bool IsValid() const;
     };
-    CellPos parse_coordinates(std::string& line);
+    CellPos parse_coordinates_line(std::string& line);
 
     CellPos operator-(const CellPos &lhs, const CellPos &rhs);
     bool operator==(const CellPos &lhs, const CellPos &rhs);
