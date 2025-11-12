@@ -5,7 +5,7 @@
 #include "Core.h"
 #include <iostream>
 
-using namespace game_core;
+using namespace core;
 
 VecRules parse_rules(std::string& s, char prefix) {
     VecRules rules {};
@@ -20,11 +20,14 @@ VecRules parse_rules(std::string& s, char prefix) {
     return rules;
 }
 
-void file_handler::LoadFromFile(std::ifstream &in, Universe& u) {
+
+
+void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback print function */) {
     if (!in) {
         throw std::invalid_argument("Cannot open a file");
     }
-    // maybe call Universe::Clear() ?
+    u.ResetUniverse();
+
     std::vector<CellPos> cells;
     CellPos max {INT_MIN, INT_MIN};
     CellPos min {INT_MAX, INT_MAX};
@@ -38,13 +41,19 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u) {
 
     Rules rules {{}, {}};
     if (line != "#Life 1.06") {
-        std::cout << "Invalid line : \"" << line << "\"\n";
+        std::cout << "Invalid line: \"" << line << "\"\n";
         std::cout << "Warning: Unknown file format.\n";
-        std::cout << "Please, use \"Life 1.06\" file format\n";
+        std::cout << "Please, use Life 1.06 file format\n";
+        std::cout << "Loading stopped\n";
+        return;
     }
     bool is_name_set = false;
     bool is_rools_set = false;
     while (std::getline(in, line)) {
+        if (line.empty()) {
+            std::cout << "Skip empty line\n";
+            continue;
+        }
         // #N Name of universe
         if (line[0] == '#') {
             if (line.substr(0, 3) == "#N ") {   // name
@@ -52,7 +61,7 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u) {
                     std::cout <<"Warning: founded more then one names. Using first one\n";
                     continue;
                 }
-                u.SetName(line.substr(3));
+                name = line.substr(3);
                 is_name_set = true;
             }
             // #R Bxyz/Sabc
@@ -79,22 +88,18 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u) {
 
             delta_row = max.row - min.row;
             delta_col = max.col - min.col;
-            if (delta_row > u.Rows()) {
-                std::cout << "[Error] Figure if file needs more rows then max available rows\n";
-                throw std::logic_error("Not enough rows");
-            }
-            if (delta_col > u.Cols()) {
-                std::cout << "[Error] Figure in file needs more columns then max available columns\n";
-                throw std::logic_error("Not enough cols");
-            }
-            if (delta_row < 0 || delta_col < 0) {
-                throw std::logic_error("min > max ?");
-            }
-
             cells.push_back(cell);
         }
+    }
 
-
+    if (delta_row >= u.Rows()) {
+        throw std::logic_error("[Error] Figure in file needs more rows then max available rows");
+    }
+    if (delta_col >= u.Cols()) {
+        throw std::logic_error("[Error] Figure in file needs more columns then max available columns");
+    }
+    if (delta_row < 0 || delta_col < 0) {
+        throw std::logic_error("[Error] Unexpected error. min > max ?");
     }
     if (rules.born.empty()) {
         std::cout << "[Warning] No born rules found. Using default: Born if 3 cells alive.\n";
@@ -113,4 +118,8 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u) {
     }
 
     u.SetRules(rules);
+    u.SetName(name);
+    std::cout << "Name set as: " << name << '\n';
+    std::cout << "Rules set as: " << rules << '\n';
+    std::cout << "Loading complete!" << std::endl;;
 }

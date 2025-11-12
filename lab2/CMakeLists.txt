@@ -7,11 +7,12 @@ add_executable(lab2 src/main.cpp
         src/Core.h
         src/Universe.cpp
         src/CellPos.cpp
-        src/CellPos.h
         src/file_handler.cpp
         src/file_handler.h
         src/Rules.cpp
         src/Field.cpp
+        src/Terminal.cpp
+        src/Terminal.h
 )
 
 add_subdirectory(test)

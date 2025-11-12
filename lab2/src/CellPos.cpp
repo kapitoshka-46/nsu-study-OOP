@@ -1,11 +1,10 @@
-#include "CellPos.h"
+#include "Core.h"
 
 #include <format>
 #include <sstream>
-using namespace cell_pos;
+using namespace core;
 
-
-CellPos cell_pos::parse_coordinates(std::string& line) {
+CellPos core::parse_coordinates(std::string& line) {
     constexpr int ERROR_VAL = INT_MIN;
     std::istringstream iss {line};
     int col = ERROR_VAL;    // TODO: сделать operator>> который будет в CellPos записывать данные
@@ -15,7 +14,6 @@ CellPos cell_pos::parse_coordinates(std::string& line) {
     return CellPos(row, col);
 }
 
-
 CellPos &CellPos::operator-=(const CellPos & other) {
     col -= other.col;
     row -= other.row;
@@ -24,7 +22,7 @@ CellPos &CellPos::operator-=(const CellPos & other) {
 
 
 bool CellPos::IsValid() const {
-    return row != NAN and col != NAN;
+    return row != ERR_VAL and col != ERR_VAL;
 }
 
 CellPos & CellPos::operator+=(const CellPos &other) {
@@ -33,15 +31,15 @@ CellPos & CellPos::operator+=(const CellPos &other) {
     return *this;
 }
 
-CellPos cell_pos::operator-(const CellPos &lhs, const CellPos &rhs) {
+CellPos core::operator-(const CellPos &lhs, const CellPos &rhs) {
     CellPos lhs1 {lhs};
     return lhs1 -= rhs;
 }
 
-bool cell_pos::operator==(const CellPos &lhs, const CellPos &rhs) {
+bool core::operator==(const CellPos &lhs, const CellPos &rhs) {
     return lhs.row == rhs.row and lhs.col == rhs.col;
 }
-std::ostream & cell_pos::operator<<(std::ostream &lhs, const CellPos pos) {
+std::ostream & core::operator<<(std::ostream &lhs, const CellPos pos) {
     lhs << std::format("({},{})", pos.row, pos.col);
     return lhs;
 }

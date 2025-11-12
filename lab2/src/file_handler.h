@@ -6,8 +6,7 @@
 
 
 namespace file_handler {
-    void LoadFromFile(std::ifstream &in, game_core::Universe& u);
-
+    void LoadFromFile(std::ifstream &in, core::Universe& u);
 }
 
 #endif //FILE_HANDLER_H

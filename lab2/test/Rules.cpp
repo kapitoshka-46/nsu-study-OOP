@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "Core.h"
-using namespace game_core;
+using namespace core;
 TEST(Survaival, A) {
     Rules r {{2, 3, 4}, {1, 6, 8}};
     ASSERT_TRUE(r.ShouldBorn(2));

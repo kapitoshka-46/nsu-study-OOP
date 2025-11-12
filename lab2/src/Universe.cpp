@@ -1,5 +1,7 @@
 #include "Core.h"
-using namespace game_core;
+#include <iostream>
+
+using namespace core;
 
 
 Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std::move(rules)) {}
@@ -7,6 +9,7 @@ Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std:
 Universe::Universe(int rows, int cols): field_(rows, cols) {}
 
 void Universe::Step() {
+    ticks++;
     Field new_field = field_;
 
     for (int row = 0; row < field_.Rows(); row++) {
@@ -25,9 +28,6 @@ void Universe::Step() {
     }
 
     field_ = new_field;
-}
-std::string Universe::ToString() {
-    return field_.ToString();
 }
 
 void Universe::Set(CellPos pos, CellType state) {
@@ -58,4 +58,41 @@ void Universe::SetName(const std::string &s) {
         throw std::invalid_argument("Cannot set empty name");
     }
     name = s;
+}
+
+void Universe::ResetField() {
+    field_.ResetAll();
+}
+
+void Universe::ResetUniverse() {
+    ResetField();
+    rules_.Reset();
+    name = "Unnamed";
+    ticks = 0;
+}
+
+const std::string & Universe::GetName() const {
+    return name;
+}
+
+const Rules &Universe::GetRules() const {
+    return rules_;
+}
+
+int Universe::GetTickCount() const {
+    return ticks;
+}
+
+const Field & Universe::GetField() const {
+    return field_;
+}
+
+
+
+std::ostream & core::operator<<(std::ostream &lhs, const Universe &rhs) {
+    lhs << "\nName: " << rhs.GetName();
+    lhs << "\nRules: " << rhs.GetRules();
+    lhs << "\nTicks: " << rhs.GetTickCount();
+    lhs << "\nField:\n" << rhs.GetField();
+    return lhs;
 }

@@ -1,6 +1,6 @@
 #include "Core.h"
 
-using namespace game_core;
+using namespace core;
 using enum CellType;
 
 
@@ -49,7 +49,7 @@ bool Field::IsAlive(CellPos pos) {
     return false;
 }
 
-std::string Field::ToString() {
+std::string Field::ToString() const {
     std::string s {};
     for (const auto& row : matrix_) {
         for (bool state : row) {
@@ -97,3 +97,17 @@ CellType Field::GetCellState(CellPos pos) {
 }
 
 Field& Field::operator=(const Field &other) = default;
+
+void Field::ResetAll() {
+    for (auto &row : matrix_) {
+        auto sz = row.size();
+        row.clear();
+        row.resize(sz);
+    }
+}
+
+
+std::ostream &core::operator<<(std::ostream &lhs, const Field &rhs) {
+    lhs << rhs.ToString(); // TODO: сделать нотрмально
+    return lhs;
+}
