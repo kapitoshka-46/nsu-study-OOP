@@ -19,7 +19,7 @@ int main() {
 
     // encapsulate it
     terminal::Terminal term {cin, cout};
-    while (true) {
+    while (not term.IsExit()) {
         terminal::Command *cmd = term.GetUserCommand();
         cmd->Execute(term);
 

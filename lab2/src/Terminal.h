@@ -15,13 +15,16 @@ namespace terminal {
     };
 
     class CommandDump : public Command {
+        std::string const path_;
+    public:
+        explicit CommandDump(const std::string &path);
         void Execute(Terminal &term) override;
     };
 
     class CommandStep :public Command {
         int num_steps_;
     public:
-        CommandStep(int num_steps = 1);
+        explicit CommandStep(int num_steps = 1);
         void Execute(Terminal &term) override;
     };
 
@@ -48,7 +51,21 @@ namespace terminal {
         void Execute(Terminal &term) override;
     };
 
+    class CommandExit : public Command {
+        void Execute(Terminal &term) override;
+    };
+
+    class CommandTickLive : public Command {
+        int num_ticks_;
+    public:
+        explicit CommandTickLive(int num_ticks);
+
+        void Execute(Terminal &term) override;
+
+    };
+
     class Terminal {
+        bool is_exit = false;
         const bool is_loging = false;
         std::istream &in_;
         std::ostream &out_;
@@ -56,11 +73,13 @@ namespace terminal {
     public:
 
         Terminal(std::istream &in, std::ostream &out);
+        ~Terminal();
         
         void Write(const std::string &msg);
         void WriteLine(const std::string &msg);
         void Log(const std::string &msg);
 
+        bool IsExit() const;
 
         core::Universe *GetUniverse();
         void InitUniverse(int rows, int cols);
@@ -69,6 +88,8 @@ namespace terminal {
         void SilenceMode();
         Command* GetUserCommand();
         void DisplayUniverse();
+
+        void Exit();
     };
 
 }

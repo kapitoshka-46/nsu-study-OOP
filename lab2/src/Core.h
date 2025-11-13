@@ -44,11 +44,12 @@ namespace core {
     public:
         explicit Field(const std::string &s, int rows, int cols);
         explicit Field(int rows, int cols);
+        ~Field();
 
         [[nodiscard]] int Rows() const;
         [[nodiscard]] int Cols() const;
 
-        bool IsAlive(CellPos pos);
+        bool IsAlive(CellPos pos) const;
 
         std::string ToString() const;
 
@@ -58,7 +59,7 @@ namespace core {
 
         void Reset(CellPos pos);  // wrapper for Set(pos, CellType::kDead)
 
-        CellType GetCellState(CellPos pos);
+        CellType GetCellState(CellPos pos) const;
 
         Field& operator=(const Field& other);
 
@@ -74,6 +75,7 @@ namespace core {
         explicit Rules(VecRules born, VecRules survival);
 
         Rules();
+        ~Rules();
 
         bool ShouldBorn(int alive) const;
 
@@ -98,10 +100,13 @@ namespace core {
     public:
         Universe(const Field& field, Rules rules);
         Universe(int rows, int cols);
+        ~Universe();
         void Step();
 
         void Set(CellPos pos, CellType state=CellType::kAlive);
         void Reset(CellPos pos);
+
+        [[nodiscard]] bool IsAlive(CellPos pos) const;
 
         [[nodiscard]] int Rows() const;
         [[nodiscard]] int Cols() const;

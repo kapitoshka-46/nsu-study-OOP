@@ -4,9 +4,13 @@
 using namespace core;
 
 
-Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std::move(rules)) {}
+Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std::move(rules)){}
 
 Universe::Universe(int rows, int cols): field_(rows, cols) {}
+
+Universe::~Universe() {
+    std::cerr << "Universe dest\n";
+}
 
 void Universe::Step() {
     ticks++;
@@ -36,6 +40,10 @@ void Universe::Set(CellPos pos, CellType state) {
 
 void Universe::Reset(CellPos pos) {
     field_.Reset(pos);
+}
+
+bool Universe::IsAlive(CellPos pos) const {
+    return field_.IsAlive(pos);
 }
 
 int Universe::Rows() const{

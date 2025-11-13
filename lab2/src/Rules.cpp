@@ -1,6 +1,7 @@
 #include "Core.h"
 #include <algorithm>
 #include <ostream>
+#include <iostream>
 
 using namespace core;
 
@@ -41,3 +42,7 @@ Rules::Rules(VecRules born, VecRules survival): born(std::move(born)),
                                                 survival(std::move(survival)) {}
 
 Rules::Rules() = default;
+
+Rules::~Rules() {
+    std::cerr << "Rules dest\n";
+}

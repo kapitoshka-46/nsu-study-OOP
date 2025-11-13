@@ -123,3 +123,29 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
     std::cout << "Rules set as: " << rules << '\n';
     std::cout << "Loading complete!" << std::endl;;
 }
+
+void file_handler::SaveToFile(std::ofstream &out, const core::Universe &u) {
+    out << "#Life 1.06\n";
+    out << "#N " + u.GetName() + '\n';
+    const Rules &rules = u.GetRules();
+
+    // save rules
+    out << "#R B";
+    for (auto rule : rules.born) {
+        out << static_cast<int>(rule);
+    }
+    out << "/S";
+    for (auto rule: rules.survival) {
+        out << static_cast<int>(rule);
+    }
+    out << '\n';
+
+    // save coordinates
+    for (int row = 0; row < u.Rows(); row++) {
+        for (int col = 0; col < u.Cols(); col++) {
+            if (u.IsAlive({row, col})) {
+                out << row << ' ' << col << '\n';
+            }
+        }
+    }
+}

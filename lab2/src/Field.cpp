@@ -1,4 +1,5 @@
 #include "Core.h"
+#include <iostream>
 
 using namespace core;
 using enum CellType;
@@ -34,6 +35,10 @@ Field::Field(int rows, int cols) : rows_(rows), cols_(cols){
     }
 }
 
+Field::~Field() {
+    std::cerr << "field dest\n";
+}
+
 int Field::Rows() const {
     return rows_;
 }
@@ -42,7 +47,7 @@ int Field::Cols() const {
     return cols_;
 }
 
-bool Field::IsAlive(CellPos pos) {
+bool Field::IsAlive(CellPos pos) const {
     if (GetCellState(pos) == kAlive) {
         return true;
     }
@@ -53,7 +58,7 @@ std::string Field::ToString() const {
     std::string s {};
     for (const auto& row : matrix_) {
         for (bool state : row) {
-            s.push_back(state == true ? 254u : '-');
+            s.push_back(state == true ? '0' : '.');
             s.push_back(' ');
         }
         s.push_back('\n');
@@ -82,7 +87,7 @@ void Field::Reset(CellPos pos) {
     Set(pos, kDead);
 }
 
-CellType Field::GetCellState(CellPos pos) {
+CellType Field::GetCellState(CellPos pos) const {
     if (pos.row < 0 or pos.row >= rows_) {
         throw std::out_of_range("row is out of range");
     }
