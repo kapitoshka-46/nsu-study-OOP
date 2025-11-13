@@ -7,7 +7,7 @@
 
 using namespace core;
 
-VecRules parse_rules(std::string& s, char prefix) {
+VecRules parse_rules(std::string const &s, char prefix) {
     VecRules rules {};
     size_t pos = s.find_first_of(prefix);
     if (pos != std::string::npos) {
