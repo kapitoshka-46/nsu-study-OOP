@@ -4,7 +4,6 @@
 class IConverter
 {
 public:
-    IConverter();
     virtual ~IConverter() = default;
 
     virtual void Apply() = 0;
