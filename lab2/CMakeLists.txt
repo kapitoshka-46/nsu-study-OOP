@@ -13,6 +13,8 @@ add_executable(lab2 src/main.cpp
         src/Field.cpp
         src/Terminal.cpp
         src/Terminal.h
+        src/GameController.cpp
+        src/GameController.h
 )
 
 add_subdirectory(test)

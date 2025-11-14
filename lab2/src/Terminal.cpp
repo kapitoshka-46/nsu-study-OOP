@@ -69,9 +69,22 @@ void CommandStep::Execute(Terminal &term) {
     }
 }
 
+void CommandRandom::Execute(Terminal &term) {
+    Universe *u = term.GetUniverse();
+    if (!u) {
+        term.InitUniverse();
+        u = term.GetUniverse();
+    }
+    u->GenerateRandom();
+    term.WriteLine("Generated random universe.");
+}
+
+CommandInvalid::CommandInvalid(std::string cmd) :cmd_(cmd){
+}
+
 void CommandInvalid::Execute(Terminal &term) {
     term.Log("Execute Invalid");
-    term.WriteLine("Invalid command");
+    term.WriteLine(std::string("Invalid command ") + "\"" + cmd_ + "\"");
     term.WriteLine(R"(Type "help" or "?" to get help)");
 }
 
@@ -123,15 +136,26 @@ void CommandEmpty::Execute(Terminal &term) {
     term.Log("Execute Empty");
 }
 
+void CommandClear::Execute(Terminal &term) {
+    term.Write("\033[2J");
+    system("clear");
+}
+
 void CommandExit::Execute(Terminal &term) {
     term.Exit();
     term.WriteLine("Exit...");
-    std::cerr << "Exit\n";
 }
 
-CommandTickLive::CommandTickLive(int num_ticks) : num_ticks_(num_ticks){}
+CommandSetSpeed::CommandSetSpeed(int speed) : speed_(speed){}
 
-void CommandTickLive::Execute(Terminal &term) {
+void CommandSetSpeed::Execute(Terminal &term) {
+    term.SetSpeed(speed_);
+}
+
+
+CommandLive::CommandLive(int num_ticks) : num_ticks_(num_ticks){};
+
+void CommandLive::Execute(Terminal &term) {
     Universe *u = term.GetUniverse();
 
     if (!u) {
@@ -142,13 +166,16 @@ void CommandTickLive::Execute(Terminal &term) {
         term.WriteLine("Number of ticks should be >= 0");
         return;
     }
-    term.Write("\033[2J");
+    // TODO: вынести это в функции терминала + добавить поддержку винды
+    term.Write("\033[?25l"); // ANSI hide cursor
+    term.Write("\033[2J");  // ANSI clear screen
     for (int i = 0; i < num_ticks_; i++) {
-        term.Write("\033[H");
+        term.Write("\033[H");   // ANSI move cursor to (0,0)
         u->Step();
         term.DisplayUniverse();
-        std::this_thread::sleep_for(300ms);
+        std::this_thread::sleep_for(1000ms / term.GetSpeed());
     }
+    term.Write("\033[?25h"); // ANSI show cursor
 }
 
 void Terminal::Write(const std::string &msg) {
@@ -190,29 +217,73 @@ Terminal::~Terminal() {
     delete universe_;
 }
 
-Command *Terminal::GetUserCommand() {
-    out_ << prompt;
-    std::string line;
-    std::getline(in_, line);
+void Terminal::ExecuteCommand(const std::string &command) {
+    Command *cmd = ParseCommand(command);
+    cmd->Execute(*this);
+    delete cmd;
+}
 
+Command *Terminal::ParseCommand(const std::string &line) {
     std::istringstream iss(line);
 
-    iss >> line;
-    if (line == "help" or line == "?") {
+    std::string param;
+    iss >> param;
+
+    if (param == "help" or param == "?") {
         return new CommandHelp();
     }
 
-    if (line  == "exit") {
+    if (param  == "exit") {
         return new CommandExit();
     }
+    if (param.empty()) {
+        return new CommandEmpty();
+    }
 
-    if (line == "dump") {
+    if (param == "clear") {
+        return new CommandClear();
+    }
+
+    if (param == "speed") {
+        std::string speed_str;
+        iss >> speed_str;
+        if  (iss.bad()){
+            WriteLine("Unexpected error while reading input. Please try again.");
+            Log("Badbit is set!");
+            return new CommandEmpty();
+        }
+
+        if (speed_str.empty()) {
+            WriteLine("Current speed: " + std::to_string(speed_) + " (default=5)");
+            return new CommandEmpty();
+        }
+        int speed;
+        try {
+            speed = std::stoi(speed_str);
+        }
+        catch (std::exception &e) {
+            Log(std::format("Exception {}",e.what()));
+            WriteLine("Speed should be a positive integer number. Try: \"speed <num>\"");
+            return new CommandEmpty();
+        }
+        if (speed <= 0) {
+            WriteLine("Speed should be a positive integer number. Try: \"speed <num>\"");\
+            return new CommandEmpty();
+        }
+        return new CommandSetSpeed(speed);
+    }
+
+    if (param == "dump") {
         std::string filename;
         iss >> filename;
         return new CommandDump(filename);
     }
 
-    if (line == "tick" or line == "t") {
+    if (param == "random") {
+        return new CommandRandom();
+    }
+
+    if (param == "tick" or param == "t") {
         std::string num_ticks_str;
         iss >> num_ticks_str;
         if  (iss.bad()){
@@ -220,10 +291,13 @@ Command *Terminal::GetUserCommand() {
             Log("Badbit is set!");
             return new CommandEmpty();
         }
+
         if (num_ticks_str.empty()) {
             return new CommandStep();
         }
+
         int num_ticks = 0;
+
         try {
             num_ticks = std::stoi(num_ticks_str);
         }
@@ -232,23 +306,27 @@ Command *Terminal::GetUserCommand() {
             WriteLine("Num of ticks should be a number. Try: \"tick <num>\"");
             return new CommandEmpty();
         }
+
         return new CommandStep(num_ticks);
     }
-    if (line == "live") {
+
+    if (param == "live") {
         std::string num_ticks_str;
         iss >> num_ticks_str;
 
-        if  (iss.bad()){
+        if (iss.bad()){
             WriteLine("Unexpected error while reading input. Please try again.");
             Log("Badbit is set!");
             return new CommandEmpty();
         }
+
         if (num_ticks_str.empty()) {
             WriteLine("You need to specify number of ticks that universe should live");
             return new CommandEmpty();
         }
 
         int num_ticks = 0;
+
         try {
             num_ticks = std::stoi(num_ticks_str);
         }
@@ -258,25 +336,34 @@ Command *Terminal::GetUserCommand() {
             return new CommandEmpty();
         }
 
-        return new CommandTickLive(num_ticks);
+        return new CommandLive(num_ticks);
     }
 
-    if (line == "show") {
+    if (param == "show") {
         return new CommandShow();
     }
 
-    if (line == "load") {
+    if (param == "load") {
         std::string filename;
         iss >> filename;
+
         if (filename.empty()) {
             Log("Empty filename.");
             WriteLine("You need to specify the filename.");
             return new CommandEmpty();
         }
+
         return new CommandLoad(filename);
     }
 
-    return new CommandInvalid();
+    return new CommandInvalid(line);
+}
+Command *Terminal::GetUserCommand() {
+    out_ << prompt;
+    std::string line;
+    std::getline(in_, line);
+
+    return ParseCommand(line);
 }
 
 void Terminal::DisplayUniverse() {
@@ -291,4 +378,24 @@ void Terminal::DisplayUniverse() {
 
 void Terminal::Exit() {
     is_exit = true;
+}
+
+void Terminal::SetSpeed(int speed) {
+    if (speed <= 0) {
+        throw std::invalid_argument("speed should be > 0");
+    }
+    speed_ = speed;
+}
+
+int Terminal::GetSpeed() const {
+    return speed_;
+}
+
+void Terminal::RunLoop() {
+    while (not IsExit()) {
+        Command *cmd  = GetUserCommand();
+        cmd->Execute(*this);
+
+        delete cmd;
+    }
 }

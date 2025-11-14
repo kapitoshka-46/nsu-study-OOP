@@ -1,5 +1,9 @@
+#include <bitset>
+
 #include "Core.h"
 #include <iostream>
+#include <random>
+#include <boost/dynamic_bitset/dynamic_bitset.hpp>
 
 using namespace core;
 using enum CellType;
@@ -108,6 +112,18 @@ void Field::ResetAll() {
         auto sz = row.size();
         row.clear();
         row.resize(sz);
+    }
+}
+
+void Field::Random() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution dist(0, 1); // Диапазон
+
+    for (auto &row : matrix_) {
+        for (int j = 0; j < Cols(); j++) {
+            row[j] = dist(gen);
+        }
     }
 }
 

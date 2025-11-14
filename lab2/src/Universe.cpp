@@ -13,7 +13,7 @@ Universe::~Universe() {
 }
 
 void Universe::Step() {
-    ticks++;
+    ticks_++;
     Field new_field = field_;
 
     for (int row = 0; row < field_.Rows(); row++) {
@@ -65,22 +65,29 @@ void Universe::SetName(const std::string &s) {
     if (s.empty()) {
         throw std::invalid_argument("Cannot set empty name");
     }
-    name = s;
+    name_ = s;
 }
 
 void Universe::ResetField() {
     field_.ResetAll();
 }
 
+void Universe::GenerateRandom() {
+    this->ResetUniverse();
+    name_ = "Random";
+    rules_ = Rules::GetDefault();
+    field_.Random();
+}
+
 void Universe::ResetUniverse() {
     ResetField();
     rules_.Reset();
-    name = "Unnamed";
-    ticks = 0;
+    name_ = "Unnamed";
+    ticks_ = 0;
 }
 
 const std::string & Universe::GetName() const {
-    return name;
+    return name_;
 }
 
 const Rules &Universe::GetRules() const {
@@ -88,7 +95,7 @@ const Rules &Universe::GetRules() const {
 }
 
 int Universe::GetTickCount() const {
-    return ticks;
+    return ticks_;
 }
 
 const Field & Universe::GetField() const {

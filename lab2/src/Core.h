@@ -64,6 +64,8 @@ namespace core {
         Field& operator=(const Field& other);
 
         void ResetAll();
+
+        void Random();
     };
     std::ostream &operator<<(std::ostream & lhs, const Field & rhs);
 
@@ -87,10 +89,13 @@ namespace core {
 
         static VecRules GetDefaultSurvival();
 
+        static Rules GetDefault();
+
         // TODO: make private
         VecRules born {3};
 
         VecRules survival {2, 3};
+
     };
     std::ostream &operator<<(std::ostream & lhs, const Rules & rhs);
 
@@ -98,8 +103,8 @@ namespace core {
     class Universe {
 
     public:
-        Universe(const Field& field, Rules rules);
-        Universe(int rows, int cols);
+        explicit Universe(const Field& field, Rules rules);
+        explicit Universe(int rows = 30, int cols = 40);
         ~Universe();
         void Step();
 
@@ -117,6 +122,8 @@ namespace core {
 
         void ResetField();
 
+        void GenerateRandom();
+
         void ResetUniverse();
 
         [[nodiscard]] const std::string &GetName() const;
@@ -128,8 +135,8 @@ namespace core {
         [[nodiscard]] const Field &GetField() const;
 
     private:
-        int ticks {0};
-        std::string name {};
+        int ticks_ {0};
+        std::string name_ {};
         Field field_;
         Rules rules_;
     };

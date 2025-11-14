@@ -12,6 +12,8 @@ namespace terminal {
     public:
         virtual ~Command() = default;
         virtual void Execute(Terminal &term) = 0;
+
+        void Execute();
     };
 
     class CommandDump : public Command {
@@ -28,7 +30,14 @@ namespace terminal {
         void Execute(Terminal &term) override;
     };
 
+    class CommandRandom : public Command {
+        void Execute(Terminal &term) override;
+    };
+
     class CommandInvalid : public Command {
+        const std::string cmd_;
+    public:
+        explicit CommandInvalid(std::string cmd);
         void Execute(Terminal &term) override;
     };
 
@@ -51,14 +60,26 @@ namespace terminal {
         void Execute(Terminal &term) override;
     };
 
+    class CommandClear : public Command {
+        void Execute(Terminal &term) override;
+    };
+
     class CommandExit : public Command {
         void Execute(Terminal &term) override;
     };
 
-    class CommandTickLive : public Command {
+    class CommandSetSpeed : public Command {
+        int speed_;
+    public:
+        CommandSetSpeed(int speed);
+        void Execute(Terminal &term) override;
+    };
+
+
+    class CommandLive : public Command {
         int num_ticks_;
     public:
-        explicit CommandTickLive(int num_ticks);
+        explicit CommandLive(int num_ticks);
 
         void Execute(Terminal &term) override;
 
@@ -67,14 +88,18 @@ namespace terminal {
     class Terminal {
         bool is_exit = false;
         const bool is_loging = false;
+        int speed_ = 5;
         std::istream &in_;
         std::ostream &out_;
         core::Universe *universe_ { nullptr };
+
+        Command *ParseCommand(const std::string &line);
     public:
 
         Terminal(std::istream &in, std::ostream &out);
         ~Terminal();
-        
+
+        void ExecuteCommand(const std::string &command);
         void Write(const std::string &msg);
         void WriteLine(const std::string &msg);
         void Log(const std::string &msg);
@@ -82,7 +107,7 @@ namespace terminal {
         bool IsExit() const;
 
         core::Universe *GetUniverse();
-        void InitUniverse(int rows, int cols);
+        void InitUniverse(int rows = 30, int cols = 40);
 
         void InteractveMode();
         void SilenceMode();
@@ -90,6 +115,11 @@ namespace terminal {
         void DisplayUniverse();
 
         void Exit();
+
+        void SetSpeed(int speed);
+        int GetSpeed() const;
+
+        void RunLoop();
     };
 
 }
