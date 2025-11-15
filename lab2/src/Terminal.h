@@ -19,7 +19,7 @@ namespace terminal {
     class CommandDump : public Command {
         std::string const path_;
     public:
-        explicit CommandDump(const std::string &path);
+        explicit CommandDump(std::string path);
         void Execute(Terminal &term) override;
     };
 
@@ -114,7 +114,13 @@ namespace terminal {
         Command* GetUserCommand();
         void DisplayUniverse();
 
-        void Exit();
+        void SendExit();
+
+        void HideCursor();
+        void ShowCursor();
+        void ClearScreen();
+
+        void MoveCursorToStart();
 
         void SetSpeed(int speed);
         int GetSpeed() const;

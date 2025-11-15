@@ -13,7 +13,8 @@ add_executable(gtest_run test0.cpp
         ../src/Universe.cpp
         ../src/Rules.cpp
         ../src/Field.cpp
-        Rules.cpp)
+        Rules.cpp
+        Universe.cpp)
 
 target_link_libraries(gtest_run GTest::gtest GTest::gtest_main)
 

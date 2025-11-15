@@ -154,6 +154,15 @@ TEST_F(LittleFields, Set) {
         }
     }
 }
+
+TEST_F(LittleFields, ResetField) {
+    boat.ResetAll();
+    for (int row = 0; row < boat.Rows(); row++) {
+        for (int col = 0; col < boat.Cols(); col++) {
+            ASSERT_FALSE(boat.IsAlive({row, col}));
+        }
+    }
+}
 //
 // INSTANTIATE_TEST_SUITE_P(
 //     TestValues,

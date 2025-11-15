@@ -108,7 +108,7 @@ namespace core {
         ~Universe();
         void Step();
 
-        void Set(CellPos pos, CellType state=CellType::kAlive);
+        Universe &Set(CellPos pos, CellType state = CellType::kAlive);
         void Reset(CellPos pos);
 
         [[nodiscard]] bool IsAlive(CellPos pos) const;

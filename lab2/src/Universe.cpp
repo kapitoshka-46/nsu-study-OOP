@@ -6,7 +6,11 @@ using namespace core;
 
 Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std::move(rules)){}
 
-Universe::Universe(int rows, int cols): field_(rows, cols) {}
+Universe::Universe(int rows, int cols): field_(rows, cols) {
+    if (rows <= 0 or cols <= 0) {
+        throw std::invalid_argument("rows or cols <= 0");
+    }
+}
 
 Universe::~Universe() {
     std::cerr << "Universe dest\n";
@@ -34,8 +38,9 @@ void Universe::Step() {
     field_ = new_field;
 }
 
-void Universe::Set(CellPos pos, CellType state) {
+Universe &Universe::Set(CellPos pos, CellType state) {
     field_.Set(pos, state);
+    return *this;
 }
 
 void Universe::Reset(CellPos pos) {

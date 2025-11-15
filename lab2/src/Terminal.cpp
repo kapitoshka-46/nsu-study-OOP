@@ -6,7 +6,9 @@
 #include <string>
 #include "file_handler.h"
 #include <filesystem>
+#include <utility>
 #include <bits/this_thread_sleep.h>
+#include "signal_handler.h"
 
 using namespace terminal;
 using namespace core;
@@ -15,7 +17,7 @@ using namespace std::chrono_literals;
 constexpr std::string prompt = "> ";
 
 
-CommandDump::CommandDump(const std::string & path) : path_(path){}
+CommandDump::CommandDump(std::string path) : path_(std::move(path)){}
 
 void CommandDump::Execute(Terminal &term) {
     term.Log("Execute Dump");
@@ -65,6 +67,10 @@ void CommandStep::Execute(Terminal &term) {
         return;
     }
     for (int i = 0; i < num_steps_; i++) {
+        if (sig_handler::SigHandler::IsStopping()) {
+            term.ExecuteCommand("exit");
+            return;
+        }
         u->Step();
     }
 }
@@ -79,7 +85,7 @@ void CommandRandom::Execute(Terminal &term) {
     term.WriteLine("Generated random universe.");
 }
 
-CommandInvalid::CommandInvalid(std::string cmd) :cmd_(cmd){
+CommandInvalid::CommandInvalid(std::string cmd) :cmd_(std::move(cmd)){
 }
 
 void CommandInvalid::Execute(Terminal &term) {
@@ -142,7 +148,8 @@ void CommandClear::Execute(Terminal &term) {
 }
 
 void CommandExit::Execute(Terminal &term) {
-    term.Exit();
+    // clear resourses
+    term.SendExit();
     term.WriteLine("Exit...");
 }
 
@@ -166,16 +173,20 @@ void CommandLive::Execute(Terminal &term) {
         term.WriteLine("Number of ticks should be >= 0");
         return;
     }
-    // TODO: вынести это в функции терминала + добавить поддержку винды
-    term.Write("\033[?25l"); // ANSI hide cursor
-    term.Write("\033[2J");  // ANSI clear screen
+
+    term.HideCursor();
+    term.ClearScreen();
     for (int i = 0; i < num_ticks_; i++) {
-        term.Write("\033[H");   // ANSI move cursor to (0,0)
+        if (sig_handler::SigHandler::IsStopping()) {
+            term.ExecuteCommand("exit");
+            return;
+        }
+        term.MoveCursorToStart();
         u->Step();
         term.DisplayUniverse();
         std::this_thread::sleep_for(1000ms / term.GetSpeed());
     }
-    term.Write("\033[?25h"); // ANSI show cursor
+    term.ShowCursor();
 }
 
 void Terminal::Write(const std::string &msg) {
@@ -213,7 +224,8 @@ Terminal::Terminal(std::istream &in, std::ostream &out) :
 }
 
 Terminal::~Terminal() {
-    std::cerr << "term dest\n";
+    std::cout << "terminal dest\n";
+    ShowCursor();
     delete universe_;
 }
 
@@ -224,6 +236,7 @@ void Terminal::ExecuteCommand(const std::string &command) {
 }
 
 Command *Terminal::ParseCommand(const std::string &line) {
+
     std::istringstream iss(line);
 
     std::string param;
@@ -360,6 +373,10 @@ Command *Terminal::ParseCommand(const std::string &line) {
 }
 Command *Terminal::GetUserCommand() {
     out_ << prompt;
+
+    if (sig_handler::SigHandler::IsStopping()) {
+        return new CommandExit();
+    }
     std::string line;
     std::getline(in_, line);
 
@@ -376,9 +393,24 @@ void Terminal::DisplayUniverse() {
 
 }
 
-void Terminal::Exit() {
+void Terminal::SendExit() {
     is_exit = true;
 }
+
+void Terminal::HideCursor() {
+    Write("\033[?25l"); // ANSI hide cursor
+}
+void Terminal::ClearScreen() {
+    Write("\033[2J");  // ANSI clear screen
+}
+void Terminal::MoveCursorToStart() {
+    Write("\033[H");    // ANSI move cursor to (0,0)
+}
+void Terminal::ShowCursor() {
+    Write("\033[?25h"); // ANSI show cursor
+}
+
+
 
 void Terminal::SetSpeed(int speed) {
     if (speed <= 0) {
@@ -393,6 +425,7 @@ int Terminal::GetSpeed() const {
 
 void Terminal::RunLoop() {
     while (not IsExit()) {
+
         Command *cmd  = GetUserCommand();
         cmd->Execute(*this);
 

@@ -33,6 +33,9 @@ Field::Field(const std::string &s, int rows, int cols) : rows_(rows), cols_(cols
 
 // inits zero field
 Field::Field(int rows, int cols) : rows_(rows), cols_(cols){
+    if (rows <= 0 or cols <= 0) {
+        throw std::invalid_argument("field: rows <= 0 or cols <= 0");
+    }
     matrix_.resize(rows);
     for (auto &row : matrix_) {
         row.resize(cols);
