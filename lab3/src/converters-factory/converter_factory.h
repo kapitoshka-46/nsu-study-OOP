@@ -1,35 +1,33 @@
 #ifndef CONVERTER_FACTORY_H
 #define CONVERTER_FACTORY_H
-
-#include "../converters/iconverter.h"
 #include <functional>
 #include <string>
-#include <vector>
-#include "../converters/converters.h"   // for Seconds type
-#include <unordered_map>
+#include "../converters/i_converter.h"
 
 namespace converter {
-
-
-
-    class ConverterFactory
-    {
-    public:
-        using Creator = std::function<IConverter* (ConverterParams)>;
-
-
-        static IConverter *CreateConverter(const std::string &name, ConverterParams params);
-
-        static void RegisterClass(const std::string& name, Creator creator) {
-            creators_[name] = std::move(creator);
-        }
-        //static void RegisterClass(const std::string &name, Creator creator);
-
-        static std::unordered_map<std::string, Creator> creators_;
-
-    private:
+    struct HelpDescriptor {
+        std::string description;
+        std::vector<std::string> parameters;
+        std::vector<std::string> examples;
     };
 
+    class ConverterFactory {
+    public:
+        using Creator = std::function<std::unique_ptr<IConverter>(Params)>;
+        ConverterFactory(const std::vector<std::string> &input_files);    // Здесь будут регистрироваться все класы
 
+
+        // add converter to factory in runtime.
+        void RegisterConverter(const std::string &name, Creator creator, HelpDescriptor help_desc) {
+            creators[name] = std::move(creator);
+            converters_descriptors.push_back(help_desc);
+        }
+
+    private:
+        std::unordered_map<std::string /*name*/, Creator> creators;
+        std::vector <HelpDescriptor> converters_descriptors;
+        std::vector<std::string> input_files;
+    };
 }
-#endif // CONVERTER_FACTORY_H
+#endif
+
