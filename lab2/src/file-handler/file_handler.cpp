@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "Core.h"
+#include "../core/Core.h"
 #include <iostream>
 
 using namespace core;
@@ -22,7 +22,7 @@ VecRules parse_rules(std::string const &s, char prefix) {
 
 
 
-void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback print function */) {
+void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback print function */) {
     if (!in) {
         throw std::invalid_argument("Cannot open a file");
     }
@@ -39,7 +39,7 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
     std::string name = "Unnamed";
     std::getline(in, line);
 
-    Rules rules {{}, {}};
+    rules rules {{}, {}};
     if (line != "#Life 1.06") {
         std::cout << "Invalid line: \"" << line << "\"\n";
         std::cout << "Warning: Unknown file format.\n";
@@ -103,11 +103,11 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
     }
     if (rules.born.empty()) {
         std::cout << "[Warning] No born rules found. Using default: Born if 3 cells alive.\n";
-        rules.born = Rules::GetDefaultBorn();
+        rules.born = rules::GetDefaultBorn();
     }
     if (rules.survival.empty()) {
         std::cout << "[Warning] No survival rules found. Using default: Survive if 2 or 3 cells alive.\n";
-        rules.survival = Rules::GetDefaultSurvival();
+        rules.survival = rules::GetDefaultSurvival();
     }
 
 
@@ -124,10 +124,10 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
     std::cout << "Loading complete!" << std::endl;;
 }
 
-void file_handler::SaveToFile(std::ofstream &out, const core::Universe &u) {
+void file_handler::SaveToFile(std::ofstream &out, const core::universe &u) {
     out << "#Life 1.06\n";
     out << "#N " + u.GetName() + '\n';
-    const Rules &rules = u.GetRules();
+    const rules &rules = u.GetRules();
 
     // save rules
     out << "#R B";

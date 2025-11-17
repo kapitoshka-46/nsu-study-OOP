@@ -72,12 +72,12 @@ namespace core {
 
     // -------------------------Rules------------------------- //
 
-    class Rules {
+    class rules {
     public:
-        explicit Rules(VecRules born, VecRules survival);
+        explicit rules(VecRules born, VecRules survival);
 
-        Rules();
-        ~Rules();
+        rules();
+        ~rules();
 
         bool ShouldBorn(int alive) const;
 
@@ -89,7 +89,7 @@ namespace core {
 
         static VecRules GetDefaultSurvival();
 
-        static Rules GetDefault();
+        static rules GetDefault();
 
         // TODO: make private
         VecRules born {3};
@@ -97,18 +97,18 @@ namespace core {
         VecRules survival {2, 3};
 
     };
-    std::ostream &operator<<(std::ostream & lhs, const Rules & rhs);
+    std::ostream &operator<<(std::ostream & lhs, const rules & rhs);
 
     // -------------------------Universe------------------------- //
-    class Universe {
+    class universe {
 
     public:
-        explicit Universe(const Field& field, Rules rules);
-        explicit Universe(int rows = 30, int cols = 40);
-        ~Universe();
+        explicit universe(const Field& field, rules rules);
+        explicit universe(int rows = 30, int cols = 40);
+        ~universe();
         void Step();
 
-        Universe &Set(CellPos pos, CellType state = CellType::kAlive);
+        universe &Set(CellPos pos, CellType state = CellType::kAlive);
         void Reset(CellPos pos);
 
         [[nodiscard]] bool IsAlive(CellPos pos) const;
@@ -116,7 +116,7 @@ namespace core {
         [[nodiscard]] int Rows() const;
         [[nodiscard]] int Cols() const;
 
-        void SetRules(const Rules & rules);
+        void SetRules(const rules & rules);
 
         void SetName(const std::string & s);
 
@@ -128,7 +128,7 @@ namespace core {
 
         [[nodiscard]] const std::string &GetName() const;
 
-        [[nodiscard]] const Rules &GetRules() const;
+        [[nodiscard]] const rules &GetRules() const;
 
         [[nodiscard]] int GetTickCount() const;
 
@@ -138,9 +138,9 @@ namespace core {
         int ticks_ {0};
         std::string name_ {};
         Field field_;
-        Rules rules_;
+        rules rules_;
     };
-    std::ostream & operator<<(std::ostream &lhs, const Universe &rhs);
+    std::ostream & operator<<(std::ostream &lhs, const universe &rhs);
 }
 
 

@@ -4,11 +4,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "file_handler.h"
+#include "../file-handler/file_handler.h"
 #include <filesystem>
 #include <utility>
 #include <bits/this_thread_sleep.h>
-#include "signal_handler.h"
+#include "../signal-handler/signal_handler.h"
 
 using namespace terminal;
 using namespace core;
@@ -21,7 +21,7 @@ CommandDump::CommandDump(std::string path) : path_(std::move(path)){}
 
 void CommandDump::Execute(Terminal &term) {
     term.Log("Execute Dump");
-    Universe const *u = term.GetUniverse();
+    universe const *u = term.GetUniverse();
     if (!u) {
         term.WriteLine("No universe to save!");
         return;
@@ -56,7 +56,7 @@ CommandStep::CommandStep(const int num_steps) : num_steps_(num_steps) {}
 void CommandStep::Execute(Terminal &term) {
     term.Log(std::format("Execute Step {} times", num_steps_));
 
-    Universe *u = term.GetUniverse();
+    universe *u = term.GetUniverse();
 
     if (!u) {
         term.WriteLine("No Universe! Load it first.");
@@ -76,7 +76,7 @@ void CommandStep::Execute(Terminal &term) {
 }
 
 void CommandRandom::Execute(Terminal &term) {
-    Universe *u = term.GetUniverse();
+    universe *u = term.GetUniverse();
     if (!u) {
         term.InitUniverse();
         u = term.GetUniverse();
@@ -101,14 +101,14 @@ void CommandShow::Execute(Terminal &term) {
 
 void CommandHelp::Execute(Terminal &term) {
     term.Log("Execute Help");
-    term.WriteLine("Help message!");
+    term.HelpMessage();
 }
 
 CommandLoad::CommandLoad(std::string &path) : path_(path) {}
 
 void CommandLoad::Execute(Terminal &term) {
     term.Log("Execute Load");
-    Universe* u = term.GetUniverse();
+    universe* u = term.GetUniverse();
     if (path_.empty()) {
         term.Log("Empty path!");
         term.WriteLine("Path is empty. Try \"load <path>\"");
@@ -163,7 +163,7 @@ void CommandSetSpeed::Execute(Terminal &term) {
 CommandLive::CommandLive(int num_ticks) : num_ticks_(num_ticks){};
 
 void CommandLive::Execute(Terminal &term) {
-    Universe *u = term.GetUniverse();
+    universe *u = term.GetUniverse();
 
     if (!u) {
         term.WriteLine("No Universe! Load it first.");
@@ -171,6 +171,9 @@ void CommandLive::Execute(Terminal &term) {
     }
     if (num_ticks_ < 0) {
         term.WriteLine("Number of ticks should be >= 0");
+        return;
+    }
+    if (num_ticks_ == 0) {
         return;
     }
 
@@ -208,23 +211,24 @@ bool Terminal::IsExit() const {
     return is_exit;
 }
 
-Universe *Terminal::GetUniverse() {
+universe *Terminal::GetUniverse() {
     return universe_;
 }
 
 void Terminal::InitUniverse(int rows, int cols) {
     delete universe_;
-    universe_ = new Universe(rows, cols);
+    universe_ = new universe(rows, cols);
 }
 
 
 Terminal::Terminal(std::istream &in, std::ostream &out) :
     in_(in),
     out_(out) {
+    WriteLine("Welcome to LIFE");
+    WriteLine("Type \"help\" to view all commands!");
 }
 
 Terminal::~Terminal() {
-    std::cout << "terminal dest\n";
     ShowCursor();
     delete universe_;
 }
@@ -431,4 +435,25 @@ void Terminal::RunLoop() {
 
         delete cmd;
     }
+}
+
+void Terminal::HelpMessage() {
+    WriteLine("\nCommands:");
+    WriteLine("    load <filename>            Load universe from Life 1.06 file");
+    WriteLine("    dump | dump <filename>     Save current universe state to Life 1.06 file");
+    WriteLine("");  // -------------------------------------------
+    WriteLine("    tick <num=1>               Tick num times");
+    WriteLine("    t <num=1>                  Alias for tick");
+    WriteLine(""); // -------------------------------------------
+    WriteLine("    show                       Show Universe");
+    WriteLine("    random                     Create random Universe");
+    WriteLine("");  // --------------------------------------
+    WriteLine("    live <num>                 Run live mode for num ticks");
+    WriteLine("    speed                      Change speed of live");
+    WriteLine("");  // --------------------------------------
+    WriteLine("    clear                      Clear the screen");
+    WriteLine("    exit                       Exit from the game");
+    WriteLine("    help                       Display this message");
+    WriteLine("    ?                          Alias for help");
+    WriteLine("");  // ----------------------------------------------
 }

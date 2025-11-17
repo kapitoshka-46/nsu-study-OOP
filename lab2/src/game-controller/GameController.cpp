@@ -1,11 +1,10 @@
 #include "GameController.h"
 
-#include <complex>
 #include <fstream>
 #include <iostream>
 
-#include "file_handler.h"
-#include "libs/cxxopts.hpp"
+#include "../file-handler/file_handler.h"
+#include "../../libs/cxxopts/cxxopts.hpp"
 
 namespace game_controller {
     void GameController::RunInteractive() {
@@ -16,8 +15,6 @@ namespace game_controller {
         else {
             term->ExecuteCommand("load " + input_file_);
         }
-        term->WriteLine(R"(Type "help" or "?" to view all commands)");
-
         term->RunLoop();
 
     }
@@ -75,7 +72,7 @@ namespace game_controller {
         if (output_file_.empty()) {
             throw std::logic_error("No output file");
         }
-        core::Universe universe;
+        core::universe universe;
         std::ifstream in {input_file_};
         std::ofstream out {output_file_};
 

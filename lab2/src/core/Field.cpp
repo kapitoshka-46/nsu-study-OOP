@@ -1,9 +1,9 @@
 #include <bitset>
+#include <random>
+#include <iostream>
 
 #include "Core.h"
-#include <iostream>
-#include <random>
-#include <boost/dynamic_bitset/dynamic_bitset.hpp>
+
 
 using namespace core;
 using enum CellType;
@@ -42,9 +42,7 @@ Field::Field(int rows, int cols) : rows_(rows), cols_(cols){
     }
 }
 
-Field::~Field() {
-    std::cerr << "field dest\n";
-}
+Field::~Field() {}
 
 int Field::Rows() const {
     return rows_;

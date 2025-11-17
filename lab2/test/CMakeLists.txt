@@ -7,14 +7,14 @@ include_directories(${gtest_SORUCE_DIR}/include
         ${gtest_SOURCE_DIR})
 include_directories(../src)
 
-add_executable(gtest_run test0.cpp
-        ../src/Core.h
-        ../src/CellPos.cpp
-        ../src/Universe.cpp
-        ../src/Rules.cpp
-        ../src/Field.cpp
-        Rules.cpp
-        Universe.cpp)
+add_executable(gtest_run boat.cpp
+        ../src/core/Core.h
+        ../src/core/CellPos.cpp
+        ../src/core/Universe.cpp
+        ../src/core/Rules.cpp
+        ../src/core/Field.cpp
+        rules.cpp
+        universe.cpp)
 
 target_link_libraries(gtest_run GTest::gtest GTest::gtest_main)
 

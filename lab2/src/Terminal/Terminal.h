@@ -2,7 +2,7 @@
 #define TERMINAL_H
 
 
-#include "Core.h"
+#include "../core/Core.h"
 
 namespace terminal {
     class Terminal;
@@ -91,7 +91,7 @@ namespace terminal {
         int speed_ = 5;
         std::istream &in_;
         std::ostream &out_;
-        core::Universe *universe_ { nullptr };
+        core::universe *universe_ { nullptr };
 
         Command *ParseCommand(const std::string &line);
     public:
@@ -106,7 +106,7 @@ namespace terminal {
 
         bool IsExit() const;
 
-        core::Universe *GetUniverse();
+        core::universe *GetUniverse();
         void InitUniverse(int rows = 30, int cols = 40);
 
         void InteractveMode();
@@ -126,6 +126,8 @@ namespace terminal {
         int GetSpeed() const;
 
         void RunLoop();
+
+        void HelpMessage();
     };
 
 }

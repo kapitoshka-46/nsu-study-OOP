@@ -2,7 +2,7 @@
 #define GAMECONTROLLER_H
 #include <string>
 
-#include "Terminal.h"
+#include "../Terminal/Terminal.h"
 
 namespace game_controller {
 

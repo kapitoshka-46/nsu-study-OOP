@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.31)
-project(lab2)
+project(life)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(lab2 src/main.cpp
-        src/Core.h
-        src/Universe.cpp
-        src/CellPos.cpp
-        src/file_handler.cpp
-        src/file_handler.h
-        src/Rules.cpp
-        src/Field.cpp
-        src/Terminal.cpp
-        src/Terminal.h
-        src/GameController.cpp
-        src/GameController.h
-        src/signal_handler.cpp
-        src/signal_handler.h
+add_executable(life src/main.cpp
+        src/core/Core.h
+        src/core/Universe.cpp
+        src/core/CellPos.cpp
+        src/file-handler/file_handler.cpp
+        src/file-handler/file_handler.h
+        src/core/Rules.cpp
+        src/core/Field.cpp
+        src/Terminal/Terminal.cpp
+        src/Terminal/Terminal.h
+        src/game-controller/GameController.cpp
+        src/game-controller/GameController.h
+        src/signal-handler/signal_handler.cpp
+        src/signal-handler/signal_handler.h
 )
 
 add_subdirectory(test)

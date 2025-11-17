@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/Core.h"
+#include "../src/core/Core.h"
 #include <tuple>
 using namespace core;
 

@@ -4,19 +4,17 @@
 using namespace core;
 
 
-Universe::Universe(const Field &field, Rules rules) : field_(field), rules_(std::move(rules)){}
+universe::universe(const Field &field, rules rules) : field_(field), rules_(std::move(rules)){}
 
-Universe::Universe(int rows, int cols): field_(rows, cols) {
+universe::universe(int rows, int cols): field_(rows, cols) {
     if (rows <= 0 or cols <= 0) {
         throw std::invalid_argument("rows or cols <= 0");
     }
 }
 
-Universe::~Universe() {
-    std::cerr << "Universe dest\n";
-}
+universe::~universe() {}
 
-void Universe::Step() {
+void universe::Step() {
     ticks_++;
     Field new_field = field_;
 
@@ -38,78 +36,78 @@ void Universe::Step() {
     field_ = new_field;
 }
 
-Universe &Universe::Set(CellPos pos, CellType state) {
+universe &universe::Set(CellPos pos, CellType state) {
     field_.Set(pos, state);
     return *this;
 }
 
-void Universe::Reset(CellPos pos) {
+void universe::Reset(CellPos pos) {
     field_.Reset(pos);
 }
 
-bool Universe::IsAlive(CellPos pos) const {
+bool universe::IsAlive(CellPos pos) const {
     return field_.IsAlive(pos);
 }
 
-int Universe::Rows() const{
+int universe::Rows() const{
     return field_.Rows();
 }
 
-int Universe::Cols() const {
+int universe::Cols() const {
     return field_.Cols();
 }
 
-void Universe::SetRules(const Rules &rules) {
+void universe::SetRules(const rules &rules) {
     if (rules.born.empty() or rules.survival.empty()) {
         throw std::logic_error("Cannot set empty rules!");
     }
     rules_ = rules;
 }
 
-void Universe::SetName(const std::string &s) {
+void universe::SetName(const std::string &s) {
     if (s.empty()) {
         throw std::invalid_argument("Cannot set empty name");
     }
     name_ = s;
 }
 
-void Universe::ResetField() {
+void universe::ResetField() {
     field_.ResetAll();
 }
 
-void Universe::GenerateRandom() {
+void universe::GenerateRandom() {
     this->ResetUniverse();
     name_ = "Random";
-    rules_ = Rules::GetDefault();
+    rules_ = rules::GetDefault();
     field_.Random();
 }
 
-void Universe::ResetUniverse() {
+void universe::ResetUniverse() {
     ResetField();
     rules_.Reset();
     name_ = "Unnamed";
     ticks_ = 0;
 }
 
-const std::string & Universe::GetName() const {
+const std::string & universe::GetName() const {
     return name_;
 }
 
-const Rules &Universe::GetRules() const {
+const rules &universe::GetRules() const {
     return rules_;
 }
 
-int Universe::GetTickCount() const {
+int universe::GetTickCount() const {
     return ticks_;
 }
 
-const Field & Universe::GetField() const {
+const Field & universe::GetField() const {
     return field_;
 }
 
 
 
-std::ostream & core::operator<<(std::ostream &lhs, const Universe &rhs) {
+std::ostream & core::operator<<(std::ostream &lhs, const universe &rhs) {
     lhs << "\nName: " << rhs.GetName();
     lhs << "\nRules: " << rhs.GetRules();
     lhs << "\nTicks: " << rhs.GetTickCount();

@@ -2,8 +2,8 @@
 #include <thread>
 #include <fstream>
 
-#include "GameController.h"
-#include "signal_handler.h"
+#include "game-controller/GameController.h"
+#include "signal-handler/signal_handler.h"
 
 volatile bool is_stopping = false;
 
