@@ -4,20 +4,30 @@
 #include "../converters/iconverter.h"
 #include <functional>
 #include <string>
+#include <vector>
+#include "../converters/converters.h"   // for Seconds type
 #include <unordered_map>
 
 namespace converter {
+
+
+
     class ConverterFactory
     {
     public:
-        ConverterFactory();
+        using Creator = std::function<IConverter* (ConverterParams)>;
 
-        using Creator = std::function<IConverter* (/* args */)>;
 
-        void RegisterClass(const std::string &name, Creator creator);
+        static IConverter *CreateConverter(const std::string &name, ConverterParams params);
+
+        static void RegisterClass(const std::string& name, Creator creator) {
+            creators_[name] = std::move(creator);
+        }
+        //static void RegisterClass(const std::string &name, Creator creator);
+
+        static std::unordered_map<std::string, Creator> creators_;
 
     private:
-        std::unordered_map<std::string, Creator> creators_;
     };
 
 
