@@ -14,7 +14,8 @@ using namespace terminal;
 using namespace core;
 using namespace std::chrono_literals;
 
-constexpr std::string prompt = "> ";
+constexpr std::string kPrompt = "> ";
+constexpr std::string kExtension = ".lif";
 
 
 CommandDump::CommandDump(std::string path) : path_(std::move(path)){}
@@ -29,17 +30,18 @@ void CommandDump::Execute(Terminal &term) {
 
     std::string filename;
     if (path_.empty()) {
-        filename = u->GetName() + "_tick_" +std::to_string(u->GetTickCount()) + ".lif";
+        filename = u->GetName() + "_tick_" + std::to_string(u->GetTickCount());
     }
     else {
         filename = path_;
     }
     int count = 0;
     std::string new_filename = filename;
-    while (std::filesystem::exists(new_filename)) {
+    while (std::filesystem::exists(new_filename + kExtension)) {
         new_filename = filename + '_' + std::to_string(count);
         count++;
     }
+    new_filename += kExtension;
 
     std::ofstream file(new_filename);
     if (!file) {
@@ -376,7 +378,7 @@ Command *Terminal::ParseCommand(const std::string &line) {
     return new CommandInvalid(line);
 }
 Command *Terminal::GetUserCommand() {
-    out_ << prompt;
+    out_ << kPrompt;
 
     if (sig_handler::SigHandler::IsStopping()) {
         return new CommandExit();

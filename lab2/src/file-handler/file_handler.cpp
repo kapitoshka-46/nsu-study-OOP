@@ -4,21 +4,13 @@
 
 #include "../core/Core.h"
 #include <iostream>
+#include <sstream>
 
 using namespace core;
 
-VecRules parse_rules(std::string const &s, char prefix) {
-    VecRules rules {};
-    size_t pos = s.find_first_of(prefix);
-    if (pos != std::string::npos) {
-        pos += 1;
-        while (std::isdigit(s[pos])) {
-            rules.push_back(s[pos] - '0');
-            pos++;
-        }
-    }
-    return rules;
-}
+CellPos parse_coordinates_line(std::string& line);
+
+VecRules parse_rules(std::string const &s, char prefix);
 
 
 
@@ -92,10 +84,10 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
         }
     }
 
-    if (delta_row >= u.Rows()) {
+    if (delta_row > u.Rows()) {
         throw std::logic_error("[Error] Figure in file needs more rows then max available rows");
     }
-    if (delta_col >= u.Cols()) {
+    if (delta_col > u.Cols()) {
         throw std::logic_error("[Error] Figure in file needs more columns then max available columns");
     }
     if (delta_row < 0 || delta_col < 0) {
@@ -144,8 +136,31 @@ void file_handler::SaveToFile(std::ofstream &out, const core::universe &u) {
     for (int row = 0; row < u.Rows(); row++) {
         for (int col = 0; col < u.Cols(); col++) {
             if (u.IsAlive({row, col})) {
-                out << row << ' ' << col << '\n';
+                out << col << ' ' << row << '\n';
             }
         }
     }
+}
+
+CellPos parse_coordinates_line(std::string& line) {
+    constexpr int ERROR_VAL = INT_MIN;
+    std::istringstream iss {line};
+    int col = ERROR_VAL;    // TODO: сделать operator>> который будет в CellPos записывать данные
+    int row = ERROR_VAL;
+    iss >> col >> row;
+
+    return CellPos(row, col);
+}
+
+VecRules parse_rules(std::string const &s, char prefix) {
+    VecRules rules {};
+    size_t pos = s.find_first_of(prefix);
+    if (pos != std::string::npos) {
+        pos += 1;
+        while (std::isdigit(s[pos])) {
+            rules.push_back(s[pos] - '0');
+            pos++;
+        }
+    }
+    return rules;
 }

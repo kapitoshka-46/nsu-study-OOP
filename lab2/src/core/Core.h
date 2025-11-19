@@ -14,10 +14,10 @@ namespace core {
 
         CellPos &operator-=(const CellPos & other);
         CellPos &operator+=(const CellPos & other);
-
         [[nodiscard]] bool IsValid() const;
+
+        CellPos(int row, int col);
     };
-    CellPos parse_coordinates_line(std::string& line);
 
     CellPos operator-(const CellPos &lhs, const CellPos &rhs);
     bool operator==(const CellPos &lhs, const CellPos &rhs);

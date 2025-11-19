@@ -4,20 +4,15 @@
 #include <sstream>
 using namespace core;
 
-
-CellPos core::parse_coordinates_line(std::string& line) {
-    constexpr int ERROR_VAL = INT_MIN;
-    std::istringstream iss {line};
-    int col = ERROR_VAL;    // TODO: сделать operator>> который будет в CellPos записывать данные
-    int row = ERROR_VAL;    // TODO: бросать эксепшн, если непраильные координаты, как это делает std::stoi(), например.
-    iss >> col >> row;
-
-    return CellPos(row, col);
-}
-
 // Check if CellPos is valid;
 bool CellPos::IsValid() const {
     return row != ERR_VAL and col != ERR_VAL;
+}
+
+CellPos::CellPos(int row, int col) : row(row), col(col) {
+    if (!IsValid()) {
+        throw std::invalid_argument("Invalid CellPos");
+    }
 }
 
 CellPos &CellPos::operator-=(const CellPos & other) {
