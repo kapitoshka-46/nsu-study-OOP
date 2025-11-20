@@ -14,19 +14,36 @@ namespace converter {
     class ConverterFactory {
     public:
         using Creator = std::function<std::unique_ptr<IConverter>(Params)>;
-        ConverterFactory(const std::vector<std::string> &input_files);    // Здесь будут регистрироваться все класы
+
+        // to register converter, call RegisterConverter in constructor
+        explicit ConverterFactory(const std::vector<std::string> &input_files);
 
 
         // add converter to factory in runtime.
         void RegisterConverter(const std::string &name, Creator creator, HelpDescriptor help_desc) {
             creators[name] = std::move(creator);
-            converters_descriptors.push_back(help_desc);
+            converters_helpers.push_back(help_desc);
         }
 
+        std::unique_ptr<IConverter> CreateConverter(std::string const &name, size_t line, Params const &params) {
+            //need to find name
+            const auto it = creators.find(name);
+            if (it == creators.cend()) {
+                throw std::invalid_argument("Unknown converter: \"" + name + "\" at line " + std::to_string(line));
+            }
+            auto res = creators[name](params);
+            return res;
+        }
+
+        // std::vector<std::unique_ptr<IConverter>>CreateConverters(std::vector<const std::string &, const Params &> converters_and_params) {
+        //
+        // }
+
+
     private:
-        std::unordered_map<std::string /*name*/, Creator> creators;
-        std::vector <HelpDescriptor> converters_descriptors;
-        std::vector<std::string> input_files;
+        std::unordered_map<std::string /*name*/, Creator /* constructor func */> creators;
+        std::vector <HelpDescriptor> converters_helpers;    // contains info for help message for every converter
+        std::vector<int> input_sources;
     };
 }
 #endif

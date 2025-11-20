@@ -22,40 +22,40 @@ namespace cfg {
             if (not std::getline(input, line)) {
                 return false;
             }
-            tokens_.emplace_back(kNewLine, "\\n", pos_);
-            //std::cout << "\\n\n";
+            //tokens_.emplace_back(kNewLine, "\\n", pos_);
             pos_.y += 1;
             pos_.x = 0;
         }
 
         if (line.empty()) { return false; }
 
-        for (const auto &t: all_tokens) {
-            std::regex re(R"(^\s*)" + RegexpForToken(t));
+        for (const auto &token_kind: kAllTokens) {
+            std::regex re(R"(^\s*)" + RegexpForToken(token_kind));
             std::smatch match;
             if (std::regex_search(line.cbegin() + pos_.x, line.cend(), match, re)) {
                 pos_.x += match.position();
                 //std::cout << "match expr at " << pos_ << ": " << match.str() << '\n';
                 pos_.x += match.length();
-                if (t != kComment) {    // don't need comments at all
-                    tokens_.emplace_back(t, match.str(), pos_);
+                if (token_kind != kComment) {    // don't need comments and NewLines
+                    tokens_.emplace_back(token_kind, match.str(), pos_);
                 }
                 return true;
             }
         }
+        std::ostringstream oss;
+        oss << "Invalid expression at line " << pos_.y + 1 << ", symbol " << pos_.x + 1 << "\n";
+        oss << line.substr(0, pos_.x) << line.substr(pos_.x) << "\n";
+        oss << repeat_char(pos_.x + 1, ' ') << "^"  << "\n";
 
-        std::cout << color::red << "invalid expression at line " << pos_.y + 1 << ", symbol " << pos_.x + 1 << color::reset << '\n';
-        std::cout << line.substr(0, pos_.x) << line.substr(pos_.x) << color::reset << '\n';
-        std::cout << repeat_char(pos_.x + 1, ' ')   << color::red << "^" << color::reset <<'\n';
-        pos_.x = line.length();
-        return true;
+        throw std::invalid_argument(oss.str());
     }
 
     std::vector<Token> Lexer::GetTokensList() {
+        while (Next()) {}   // if already processed file returns false
         return tokens_;
     }
 
-    Lexer::Lexer(std::string const &filename): input(filename) {
+    Lexer::Lexer(const std::string &filename): input(filename) {
         std::getline(input, line);
     }
 }

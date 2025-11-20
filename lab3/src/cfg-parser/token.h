@@ -23,7 +23,7 @@ namespace cfg {
     };
 
     using enum TokenKind;
-    constexpr std::array all_tokens {TOKEN_LIST};
+    constexpr std::array kAllTokens {TOKEN_LIST};
 
 
     constexpr std::string RegexpForToken(TokenKind t) {
@@ -33,7 +33,7 @@ namespace cfg {
             case kTimeStamp: return R"(\d+)";
             case kConverter: return R"(\s*([a-z_]+))";
             case kNewLine:   return R"(\n)";
-            default: throw std::invalid_argument("Unknown token");
+            default: throw std::invalid_argument("RegexpForToken: Unknown token kind");
         }
     }
 

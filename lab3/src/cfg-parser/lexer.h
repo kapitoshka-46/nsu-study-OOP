@@ -16,11 +16,10 @@ namespace cfg {
         Point<size_t> pos_ = {0, 0};
         std::vector<Token> tokens_;
 
-    public:
         bool Next();
 
+    public:
         std::vector<Token> GetTokensList();
-
         explicit Lexer(std::string const &filename);
     };
 }

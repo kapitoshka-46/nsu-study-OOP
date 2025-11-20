@@ -5,7 +5,7 @@
 
 namespace converter {
     using Seconds = std::chrono::seconds;
-    using Vars = std::vector<int>;  // $0 $1, ...
+    using Vars = std::vector<std::string>;  // $0 $1, ...
     using TimeStamps = std::vector<Seconds>;   // 20, 10, 0, ...
     struct Params {
         Vars streams;
@@ -15,7 +15,7 @@ namespace converter {
     class IConverter {
     public:
         virtual ~IConverter() = default;
-        virtual void Apply() = 0;
+        virtual void Apply(std::vector<int16_t> &samples) = 0;
     };
 
 }

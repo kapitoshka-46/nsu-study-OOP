@@ -11,9 +11,7 @@ namespace converter {
     public:
         explicit Mute(Seconds start);
         explicit Mute(Seconds start, Seconds end);
-        void Apply() override {
-            std::cout << "mute apply\n";
-        }
+        void Apply(std::vector<int16_t> &samples) override;
     };
 }
 

@@ -20,10 +20,16 @@ add_executable(sound_processor src/main.cpp
         src/terminal/color.h
         src/converters/i_converter.cpp
         src/converters/i_converter.h
+
+        src/converters/mix/mix.cpp
         src/converters/mix/mix.h
-        src/converters/mix/mix.h
+
         src/converters/mute/mute.cpp
         src/converters/mute/mute.h
+
         src/converters-factory/converter_factory.cpp
         src/converters-factory/converter_factory.h
+        src/sample-stream/ISampleStream.h
+        src/sample-stream/wav/wav_stream.cpp
+        src/sample-stream/wav/wav_stream.h
 )
