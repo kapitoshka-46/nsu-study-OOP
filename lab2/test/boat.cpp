@@ -111,7 +111,7 @@ TEST(Getters, CellState_OutOfRange) {
 
 TEST_F(LittleFields, Get) {
     CellType cell;
-    CellPos pos{};
+    CellPos pos {0, 0};
     CellType expected;
     for (int col = 0; col < boat.Rows(); col++) {
         pos = {0, col};

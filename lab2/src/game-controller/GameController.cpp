@@ -5,6 +5,7 @@
 
 #include "../file-handler/file_handler.h"
 #include "../../libs/cxxopts/cxxopts.hpp"
+#include "../signal-handler/signal_handler.h"
 
 namespace game_controller {
     void GameController::RunInteractive() {
@@ -26,7 +27,9 @@ namespace game_controller {
     }
 
     GameController::GameController(int argc, char *argv[]) {
-        cxxopts::Options options("game_of_life", "helps_string");
+        sig_handler::SigHandler::Init();
+
+        cxxopts::Options options("life", "\nWelcome to LIFE -- yet another game of life\n");
 
         // what a nice parser :-)
         options.add_options()
@@ -104,7 +107,7 @@ namespace game_controller {
 
             default: {
                 throw std::invalid_argument("Unknown game mode");
-            };
+            }
         }
     }
 

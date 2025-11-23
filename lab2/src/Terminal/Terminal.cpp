@@ -451,7 +451,8 @@ void Terminal::HelpMessage() {
     WriteLine("    random                     Create random Universe");
     WriteLine("");  // --------------------------------------
     WriteLine("    live <num>                 Run live mode for num ticks");
-    WriteLine("    speed                      Change speed of live");
+    WriteLine("    speed                      Show current speed");
+    WriteLine("    speed <value               Change speed of live");
     WriteLine("");  // --------------------------------------
     WriteLine("    clear                      Clear the screen");
     WriteLine("    exit                       Exit from the game");
