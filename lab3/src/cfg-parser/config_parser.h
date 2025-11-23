@@ -9,13 +9,15 @@
 namespace cfg {
 
 
+    using NameLineParams = std::tuple<std::string, size_t, converter::Params>;
+    using PointersToConverters = std::vector<std::unique_ptr<converter::IConverter>>;
 
     // name: "EFFECT", text: "mute"
     // name: "Var", text: "$0"
     // name: "time", text: "30"
-    class ConfigParser {
+    class Parser {
     public:
-        static std::vector<std::unique_ptr<converter::IConverter>> GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files);
+        static PointersToConverters GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files);
     };
 
 } // cfg

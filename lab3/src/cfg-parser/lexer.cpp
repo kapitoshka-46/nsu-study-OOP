@@ -27,7 +27,7 @@ namespace cfg {
             pos_.x = 0;
         }
 
-        if (line.empty()) { return false; }
+        if (line.empty()) { return true; }
 
         for (const auto &token_kind: kAllTokens) {
             std::regex re(R"(^\s*)" + RegexpForToken(token_kind));

@@ -8,6 +8,6 @@ converter::Mute::Mute(Seconds start, Seconds end) {
     std::cout << "const: mute from " << start << " to " << end << "\n";
 }
 
-void converter::Mute::Apply(std::vector<int16_t> &samples) {
+void converter::Mute::Apply(IAudioIn &input, IAudioOut & output) {
     std::cout << "apply: mute\n";
 }

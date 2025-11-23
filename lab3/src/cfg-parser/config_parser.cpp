@@ -12,19 +12,17 @@
 
 using namespace cfg;
 using namespace converter;
-using NameLineParams = std::tuple<std::string, size_t, Params>;
-using PointersConverters = std::vector<std::unique_ptr<IConverter>>;
 
 
 std::vector<NameLineParams> GetNamesAndParams(const std::string &filename);
 void print_str_and_params(std::vector<NameLineParams> x);
 void print_tokens(const std::vector<Token> &vec);
 
-std::vector<std::unique_ptr<IConverter>> ConfigParser::GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files) {
+std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files) {
 
     std::vector<NameLineParams> converters_and_params = GetNamesAndParams(filename);
 
-    PointersConverters ptrs;
+    PointersToConverters ptrs;
     ConverterFactory factory {input_files};
     for (const auto &[name, line, params] : converters_and_params) {
         ptrs.push_back(std::move(factory.CreateConverter(name, line, params)));

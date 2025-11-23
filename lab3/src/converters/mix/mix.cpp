@@ -20,6 +20,6 @@ converter::Mix::Mix(std::vector<std::string> others, Seconds start, Seconds end)
     std::cout << "const: mix for others from " << start << " to " << end << "\n";
 }
 
-void converter::Mix::Apply(std::vector<int16_t> &samples) {
+void converter::Mix::Apply(IAudioIn &input, IAudioOut &output) {
     std::cout << "apply: mix\n";
 }

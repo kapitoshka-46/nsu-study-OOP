@@ -12,7 +12,9 @@ namespace converter {
         Mix(std::vector<std::string> others, Seconds start);
         Mix(std::vector<std::string> others, Seconds start, Seconds end);
 
-        void Apply(std::vector<int16_t> &samples) override;
+        void Apply(IAudioIn &input, IAudioOut &output) override;
+
+        std::string GetName() const override {return "mix";}
     };
 }
 

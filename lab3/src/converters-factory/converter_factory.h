@@ -35,10 +35,6 @@ namespace converter {
             return res;
         }
 
-        // std::vector<std::unique_ptr<IConverter>>CreateConverters(std::vector<const std::string &, const Params &> converters_and_params) {
-        //
-        // }
-
 
     private:
         std::unordered_map<std::string /*name*/, Creator /* constructor func */> creators;

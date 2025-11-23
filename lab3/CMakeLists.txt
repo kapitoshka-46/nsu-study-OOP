@@ -14,7 +14,6 @@ add_executable(sound_processor src/main.cpp
         src/cfg-parser/lexer.cpp
         src/cfg-parser/lexer.h
 
-        src/cfg-parser/point.cpp
         src/cfg-parser/point.h
 
         src/terminal/color.h
@@ -32,4 +31,8 @@ add_executable(sound_processor src/main.cpp
         src/sample-stream/ISampleStream.h
         src/sample-stream/wav/wav_stream.cpp
         src/sample-stream/wav/wav_stream.h
+        src/sound-processor/sound_processor.cpp
+        src/sound-processor/sound_processor.h
+        src/converters/dummy/dummy.cpp
+        src/converters/dummy/dummy.h
 )

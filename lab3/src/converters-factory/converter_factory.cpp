@@ -3,6 +3,7 @@
 #include "../converters/i_converter.h"
 #include "../converters/mix/mix.h"
 #include "../converters/mute/mute.h"
+#include "../converters/dummy/dummy.h"
 
 converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & input_files)
 {
@@ -30,7 +31,7 @@ converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & i
 
     RegisterConverter(
         "mix",
-        [](Params params) -> std::unique_ptr<IConverter> {  // захватываем this, чтобы не передавать весь input_files
+        [](Params params) -> std::unique_ptr<IConverter> {
             if (params.streams.empty()) {
                 throw std::runtime_error("Need at least 1 stream for mix");
             }
@@ -55,5 +56,19 @@ converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & i
         {"Mixing with other files",
         {"streams...", "start", "end"},
         {"mix $0", "mix $1 20 30"}}
+    );
+
+    RegisterConverter(
+        "dummy",
+        [](const Params &params) -> std::unique_ptr<IConverter> {
+            if (!params.time_stamps.empty() or !params.streams.empty()) {
+                throw std::invalid_argument("dummy converter shouldn't have params");
+            }
+            return std::make_unique<Dummy>();
+        },
+        {"do nothing",
+        {},
+        {"dummy"}
+        }
     );
 }

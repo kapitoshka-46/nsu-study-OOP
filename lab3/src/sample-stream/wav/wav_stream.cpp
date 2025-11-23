@@ -6,13 +6,14 @@
 // если это интересующий нас чанк -- передаём
 // считанный BaseChunk в конструктор другому чанку!
 
+using namespace audio_stream;
 
-sample_stream::BaseChunk &sample_stream::BaseChunk::Read(std::ifstream &file) {
+BaseChunk &BaseChunk::Read(std::ifstream &file) {
     file.read(reinterpret_cast<char*>(this), sizeof(*this));
     return *this;
 }
 
-std::string sample_stream::BaseChunk::GetID_Str() const {
+std::string BaseChunk::GetID_Str() const {
     std::string str;
     str.resize(4);
     str[0] = chunk_id[0];
@@ -22,7 +23,7 @@ std::string sample_stream::BaseChunk::GetID_Str() const {
     return str;
 }
 
-sample_stream::RIFFChunk & sample_stream::RIFFChunk::Read(std::ifstream &file) {
+RIFFChunk & RIFFChunk::Read(std::ifstream &file) {
     if (chunk_size == 0) {
         file.read(reinterpret_cast<char*>(this), sizeof(*this));
     }
@@ -32,28 +33,33 @@ sample_stream::RIFFChunk & sample_stream::RIFFChunk::Read(std::ifstream &file) {
     return *this;
 }
 
-std::string sample_stream::RIFFChunk::GetFormatStr() const {
+std::string RIFFChunk::GetFormatStr() const {
     return std::string{reinterpret_cast<const char*>(format)};
 }
 
-bool sample_stream::RIFFChunk::IsValid() const {
+bool RIFFChunk::IsValid() const {
     return GetID_Str() == "RIFF" and GetFormatStr() == "WAVE";
 
 }
 
-sample_stream::FMTChunk & sample_stream::FMTChunk::Read(std::ifstream &file) {
+FMTChunk & FMTChunk::Read(std::ifstream &file) {
     file.read(reinterpret_cast<char*>(this), sizeof(*this));
     return *this;
 }
 
-sample_stream::WAVStreamInput::WAVStreamInput(const std::string& filename) {
-    // reading header until `data` subchunk.
+void WavHeader::Write(std::ofstream &file) {
+    file.write(reinterpret_cast<char*>(this), sizeof(*this));
+
+}
+
+WAVStreamInput::WAVStreamInput(const std::string& input_filename) {
+    // reading header until `data` subchunk
     // https://en.wikipedia.org/wiki/WAV
 
-    file.open(filename, std::ios::binary);
+    file.open(input_filename, std::ios::binary);
 
     if (!file) {
-        throw std::invalid_argument("Cannot open file:" + filename);
+        throw std::invalid_argument("Cannot open file: " + input_filename);
     }
     auto &riff = header.riff_chunk;
     auto &fmt = header.fmt_chunk;
@@ -62,7 +68,7 @@ sample_stream::WAVStreamInput::WAVStreamInput(const std::string& filename) {
     // ------------------------------ RIFF Chunk --------------------------------------------
     riff.Read(file);
     if (!riff.IsValid()) {
-        throw std::invalid_argument("Unsupported file format in file: " + filename);
+        throw std::invalid_argument("Unsupported file format in file: " + input_filename);
     }
 
     bool is_found_data = false;
@@ -93,6 +99,8 @@ sample_stream::WAVStreamInput::WAVStreamInput(const std::string& filename) {
                 throw std::invalid_argument("Unsupported zipped audio");
             }
         }
+
+        // -------------------------- data chunk --------------------------------
         else if (chunk.GetID_Str() == "data") {
             std::cout << "found `data` subchunk" << std::endl;
             is_found_data = true;
@@ -112,7 +120,55 @@ sample_stream::WAVStreamInput::WAVStreamInput(const std::string& filename) {
     }
 }
 
-sample_stream::WAVStreamInput::~WAVStreamInput() {
+WAVStreamInput::~WAVStreamInput() {
     file.close();
+}
+
+void WAVStreamInput::Skip(size_t num_of_samples) {
+    file.seekg(num_of_samples * (GetDepth() / 8), std::ios::cur);
+}
+
+void WAVStreamInput::Rewind() {
+    file.seekg(sizeof(WavHeader), std::ios::beg);
+}
+
+WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth)  : file(ouput_filename, std::ios::binary) {
+    // a lot of specific file format code !!
+    // works with mono wav
+    if (depth % 8 != 0) {throw std::invalid_argument("depth is not divides by 8:" + std::to_string(depth));}
+
+    WavHeader header{};
+
+    RIFFChunk &riff = header.riff_chunk;
+    FMTChunk &fmt = header.fmt_chunk;
+    BaseChunk &data = header.data_header;
+    // ----------------- RIFF ------------------------
+    std::memcpy(riff.chunk_id, "RIFF", 4);
+    riff.chunk_size = sizeof(RIFFChunk) - sizeof(riff.chunk_id_i) - sizeof(riff.chunk_size);
+    std::memcpy(riff.format, "WAVE", 4);
+
+    // ----------------- FMT ---------------------------
+    std::memcpy(fmt.chunk_id, "fmt ", 4);
+    fmt.chunk_size = sizeof(FMTChunk) - sizeof(fmt.chunk_id_i) - sizeof(fmt.chunk_size);
+    fmt.block_align = depth / 8;
+    fmt.bits_per_sample = depth;
+    fmt.sample_rate = sample_rate;
+    fmt.num_channels = 1;
+    fmt.byte_rate = sample_rate * depth * fmt.num_channels / 8;
+    fmt.audio_format_i = 1;
+
+    // ------------------ data -----------------s---------
+    std::memcpy(header.data_header.chunk_id, "data", 4);
+    data.chunk_size = static_cast<uint32_t>(-1);
+
+    header.Write(file);
+}
+
+WAVStreamOutput::~WAVStreamOutput() {
+    file.close();
+}
+
+void WAVStreamOutput::Rewind() {
+    file.seekp(sizeof(WavHeader), std::ios::beg);
 }
 

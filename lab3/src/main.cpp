@@ -8,19 +8,17 @@
 #include "cfg-parser/config_parser.h"
 #include "converters-factory/converter_factory.h"
 #include "sample-stream/wav/wav_stream.h"
+#include "sound-processor/sound_processor.h"
 
 using namespace  std::chrono_literals;
-using namespace sample_stream;
+using namespace audio_stream;
 
 
 int main() {
-    // auto converters = cfg::ConfigParser::GetConvertersFromConfig("config.cfg", {"input1.wav", "input2.wav"});
-    // std::vector<int16_t> pseudo_samples {2, 5, 10};
-    // for (auto &conv : converters) {
-    //     conv->Apply(pseudo_samples);
-    // }
-    ISampleStreamInput* ssi = new WAVStreamInput("/home/kapiuser/Music/laba/wav/klub.wav");
-    delete ssi;
-    std::ifstream in;
+
+    std::vector<std::string> files = {"/home/kapiuser/Music/laba/wav/cool.wav", "/home/kapiuser/Music/laba/wav/snoop.wav"};
+    std::string config_name = "config.cfg";
+    sound_processor::SoundProcessor sp(config_name, files);
+    sp.RunPipeline();
     return 0;
 }

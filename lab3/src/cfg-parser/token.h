@@ -13,10 +13,10 @@ namespace cfg {
 
 
 #define TOKEN_LIST kComment,    \
-    kVar,                       \
-    kTimeStamp,                 \
     kConverter,                 \
-    kNewLine,
+    kNewLine,                   \
+    kTimeStamp,                 \
+    kVar,
 
     enum class TokenKind {
         TOKEN_LIST
@@ -30,7 +30,7 @@ namespace cfg {
         switch (t) {
             case kComment:   return R"(\#.*$)";
             case kVar:       return R"(\$\d+)";
-            case kTimeStamp: return R"(\d+)";
+            case kTimeStamp: return R"( \d+)";
             case kConverter: return R"(\s*([a-z_]+))";
             case kNewLine:   return R"(\n)";
             default: throw std::invalid_argument("RegexpForToken: Unknown token kind");

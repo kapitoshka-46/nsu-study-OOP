@@ -11,7 +11,10 @@ namespace converter {
     public:
         explicit Mute(Seconds start);
         explicit Mute(Seconds start, Seconds end);
-        void Apply(std::vector<int16_t> &samples) override;
+        void Apply(IAudioIn &input, IAudioOut & output) override;
+
+        std::string GetName() const override {return "mute";}
+
     };
 }
 
