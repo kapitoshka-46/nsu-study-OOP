@@ -52,7 +52,7 @@ namespace terminal {
     class CommandLoad : public Command {
         std::string path_;
     public:
-        explicit CommandLoad(std::string &path);
+        explicit CommandLoad(std::string path);
         void Execute(Terminal &term) override;
     };
 
@@ -71,7 +71,7 @@ namespace terminal {
     class CommandSetSpeed : public Command {
         int speed_;
     public:
-        CommandSetSpeed(int speed);
+        explicit CommandSetSpeed(int speed);
         void Execute(Terminal &term) override;
     };
 
@@ -91,44 +91,58 @@ namespace terminal {
         int speed_ = 5;
         std::istream &in_;
         std::ostream &out_;
-        core::universe *universe_ { nullptr };
+        core::Universe *universe_ { nullptr };
 
-        Command *ParseCommand(const std::string &line);
+        [[nodiscard]] Command *ParseCommand(const std::string &line) const;
     public:
-
+        // ---------------- Constructors ----------------
         Terminal(std::istream &in, std::ostream &out);
+
+        // ---------------- Destructors ----------------
         ~Terminal();
 
-        void ExecuteCommand(const std::string &command);
-        void Write(const std::string &msg);
-        void WriteLine(const std::string &msg);
-        void Log(const std::string &msg);
+        // ---------------- Getters ----------------
+        [[nodiscard]] bool IsExit() const;
 
-        bool IsExit() const;
+        [[nodiscard]] core::Universe *GetUniverse() const;
 
-        core::universe *GetUniverse();
+        [[nodiscard]] Command* GetUserCommand() const;    // waits for user prompt
+
+        [[nodiscard]] int GetSpeed() const;
+
+        // ---------------- Setters ----------------
+        void SetSpeed(int speed);
+
+        // ---------------- Actions ----------------
         void InitUniverse(int rows = 30, int cols = 40);
 
-        void InteractveMode();
-        void SilenceMode();
-        Command* GetUserCommand();
-        void DisplayUniverse();
+        void ExecuteCommand(const std::string &command);
+
+        void Write(const std::string &msg) const;
+
+        void WriteLine(const std::string &msg) const;
+
+        void DisplayUniverse() const;   // show field and additional info about universe
+
+        void Log(const std::string &msg) const;
 
         void SendExit();
 
-        void HideCursor();
-        void ShowCursor();
-        void ClearScreen();
+        void RunLoop(); // main loop
 
-        void MoveCursorToStart();
+        void HelpMessage() const;
 
-        void SetSpeed(int speed);
-        int GetSpeed() const;
 
-        void RunLoop();
+        // ----------- ANSI manipulators -----------
+        void HideCursor() const;
 
-        void HelpMessage();
+        void ShowCursor() const;
+
+        void ClearScreen() const;
+
+        void MoveCursorToStart() const;
     };
+
 
 }
 

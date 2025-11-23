@@ -4,16 +4,9 @@
 #include <sstream>
 using namespace core;
 
-// Check if CellPos is valid;
-bool CellPos::IsValid() const {
-    return row != ERR_VAL and col != ERR_VAL;
-}
+CellPos::CellPos(int row, int col) : row(row), col(col) {}
 
-CellPos::CellPos(int row, int col) : row(row), col(col) {
-    if (!IsValid()) {
-        throw std::invalid_argument("Invalid CellPos");
-    }
-}
+CellPos::CellPos() = default;
 
 CellPos &CellPos::operator-=(const CellPos & other) {
     col -= other.col;

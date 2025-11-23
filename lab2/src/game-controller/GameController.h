@@ -17,20 +17,19 @@ class GameController {
     std::string input_file_;
     std::string output_file_;
     int iterations_ = 0;
-    terminal::Terminal* term = nullptr;
+    terminal::Terminal* term = nullptr; // for interactive mode
     bool is_verbose_ = false;
 
     void RunInteractive();
 
+    void RunOffline() const;
+
     void Log(const std::string &msg) const;
 
 public:
-    GameController(int argc, char* argv[]);
+    GameController(int argc, char* argv[]);     // parses input args
 
-
-    void RunOffline() const;
-
-    void Start();
+    void Start();   // starts the game (in any mode)
 
     ~GameController();
 

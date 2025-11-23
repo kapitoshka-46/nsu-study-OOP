@@ -4,6 +4,7 @@
 
 
 namespace sig_handler {
+    // handle signals to process like SIGINT
     class SigHandler {
     public:
         static volatile inline bool is_stopping_ = false;
@@ -12,7 +13,7 @@ namespace sig_handler {
         static bool IsStopping();
 
     private:
-        static void Handler_(int signal);
+        static void Handler(int signal);
     };
 }
 

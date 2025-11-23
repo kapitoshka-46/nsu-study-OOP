@@ -22,7 +22,7 @@ namespace game_controller {
 
     void GameController::Log(const std::string &msg) const {
         if (is_verbose_) {
-            std::cout << msg << '\n';
+            std::cout << msg << std::endl;
         }
     }
 
@@ -48,9 +48,10 @@ namespace game_controller {
             mode_ = Mode::kExit;
             return;
         }
+
         if (result.contains("iterations")) {
             if (not result.contains("file") or not result.contains("output")) {
-                std::cout << "You should specify input and output files\n";
+                std::cout << "You should specify input and output files" << std::endl;
                 mode_ = Mode::kExit;
                 return;
             }
@@ -58,8 +59,8 @@ namespace game_controller {
             return;
         }
 
-        /* "game --output=out" is invalid case because
-         * it runs interactive mode which will ignore output file */
+        /* `./life --output=out` is invalid case because
+         * it runs interactive mode which will ignores the output file */
         if (not result.contains("iterations") and result.contains("output")) {
             std::cout << "If you specify the output file, you should provide the num of iterations with option -i <num> or --iterations=<num>\n";
             mode_ = Mode::kExit;
@@ -75,7 +76,7 @@ namespace game_controller {
         if (output_file_.empty()) {
             throw std::logic_error("No output file");
         }
-        core::universe universe;
+        core::Universe universe;
         std::ifstream in {input_file_};
         std::ofstream out {output_file_};
 
@@ -104,7 +105,6 @@ namespace game_controller {
                 RunOffline();
                 break;
             }
-
             default: {
                 throw std::invalid_argument("Unknown game mode");
             }

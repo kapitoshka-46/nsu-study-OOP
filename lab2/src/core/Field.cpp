@@ -1,9 +1,8 @@
 #include <bitset>
 #include <random>
-#include <iostream>
 
 #include "Core.h"
-
+#include <iostream>
 
 using namespace core;
 using enum CellType;
@@ -42,7 +41,7 @@ Field::Field(int rows, int cols) : rows_(rows), cols_(cols){
     }
 }
 
-Field::~Field() {}
+Field::~Field() = default;
 
 int Field::Rows() const {
     return rows_;
@@ -52,23 +51,15 @@ int Field::Cols() const {
     return cols_;
 }
 
+const Vec2D & Field::GetMatrix() const {
+    return matrix_;
+}
+
 bool Field::IsAlive(CellPos pos) const {
     if (GetCellState(pos) == kAlive) {
         return true;
     }
     return false;
-}
-
-std::string Field::ToString() const {
-    std::string s {};
-    for (const auto& row : matrix_) {
-        for (bool state : row) {
-            s.push_back(state == true ? '0' : '.');
-            s.push_back(' ');
-        }
-        s.push_back('\n');
-    }
-    return s;
 }
 
 int Field::CountAliveAt(CellPos pos) {
@@ -116,7 +107,7 @@ void Field::ResetAll() {
     }
 }
 
-void Field::Random() {
+void Field::GenerateRandomField() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution dist(0, 1); // Диапазон
@@ -130,6 +121,12 @@ void Field::Random() {
 
 
 std::ostream &core::operator<<(std::ostream &lhs, const Field &rhs) {
-    lhs << rhs.ToString(); // TODO: сделать нотрмально
+    const auto &matrix = rhs.GetMatrix();
+    for (const auto& row : matrix) {
+        for (bool state : row) {
+            lhs << (state == true ? '0' : '.') << " ";
+        }
+        lhs << "\n";
+    }
     return lhs;
 }

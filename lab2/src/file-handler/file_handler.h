@@ -6,8 +6,10 @@
 
 
 namespace file_handler {
-    void LoadFromFile(std::ifstream &in, core::universe &u);
-    void SaveToFile(std::ofstream &out, const core::universe &u);
+
+    void LoadFromFile(std::ifstream &in, core::Universe &u);
+
+    void SaveToFile(std::ofstream &out, const core::Universe &u);
 }
 
 #endif //FILE_HANDLER_H

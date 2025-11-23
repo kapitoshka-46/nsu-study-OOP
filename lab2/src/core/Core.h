@@ -1,22 +1,24 @@
 #ifndef CORE_H
 #define CORE_H
-
-#include <format>
+// ------------ Constructors ------------
+// ------------- Destructor -------------
+// -------------- Getters ---------------
+// -------------- Setters ---------------
+// -------------- Actions ---------------
 #include <vector>
 #include <string>
 #include <climits>
 
 namespace core {
-    static constexpr int ERR_VAL = INT_MIN;
     struct CellPos {
-        int row = ERR_VAL;
-        int col = ERR_VAL;
+        int row = 0;
+        int col = 0;
 
         CellPos &operator-=(const CellPos & other);
         CellPos &operator+=(const CellPos & other);
-        [[nodiscard]] bool IsValid() const;
 
         CellPos(int row, int col);
+        CellPos();
     };
 
     CellPos operator-(const CellPos &lhs, const CellPos &rhs);
@@ -37,110 +39,156 @@ namespace core {
 
     // ------------------------- Field ------------------------- //
     class Field {
-        int rows_ {0};
-        int cols_ {0};
-        Vec2D matrix_ {};
 
     public:
+        // --------------- Constructors ---------------
         explicit Field(const std::string &s, int rows, int cols);
         explicit Field(int rows, int cols);
+
+        // --------------- Destructor -----------------
         ~Field();
 
+        // --------------- Getters ---------------
         [[nodiscard]] int Rows() const;
+
         [[nodiscard]] int Cols() const;
 
-        bool IsAlive(CellPos pos) const;
+        [[nodiscard]] const Vec2D &GetMatrix() const;
 
-        std::string ToString() const;
+        [[nodiscard]] bool IsAlive(CellPos pos) const;
 
+        [[nodiscard]] CellType GetCellState(CellPos pos) const;
+
+
+        // --------------- Actions ---------------
         int CountAliveAt(CellPos pos);
 
+        void GenerateRandomField();
+
+        // --------------- Setters ---------------
         void Set(CellPos pos, CellType state=CellType::kAlive);
 
-        void Reset(CellPos pos);  // wrapper for Set(pos, CellType::kDead)
+        void Reset(CellPos pos);  // alias for Set(pos, CellType::kDead)
 
-        CellType GetCellState(CellPos pos) const;
-
-        Field& operator=(const Field& other);
+        Field& operator=(const Field& other);   // TODO:  operator=(Field && other)
 
         void ResetAll();
 
-        void Random();
+    private:
+        int rows_ {0};
+        int cols_ {0};
+        Vec2D matrix_ {};
     };
     std::ostream &operator<<(std::ostream & lhs, const Field & rhs);
 
 
     // -------------------------Rules------------------------- //
-
-    class rules {
+    class Rules {
     public:
-        explicit rules(VecRules born, VecRules survival);
+        // ------------ Constructors ------------
+        explicit Rules(VecRules born, VecRules survival);
 
-        rules();
-        ~rules();
+        Rules();
 
-        bool ShouldBorn(int alive) const;
+        Rules(const Rules &other);
 
-        bool ShouldSurvival(int alive) const;
+        // ------------- Destructor -------------
+        ~Rules();
 
-        void Reset();
+        // -------------- Getters ---------------
+        [[nodiscard]] const VecRules &GetBorn() const;
+
+        [[nodiscard]] const VecRules &GetSurvival() const;
 
         static VecRules GetDefaultBorn();
 
         static VecRules GetDefaultSurvival();
 
-        static rules GetDefault();
+        static Rules GetDefault();
 
-        // TODO: make private
+        // -------------- Setters ---------------
+        void Reset();
+
+        void SetDefaultBorn();
+
+        void SetDefaultSurvival();
+
+        void SetRules(VecRules born, VecRules survival);
+
+        // -------------- Actions ---------------
+        [[nodiscard]] bool ShouldBorn(int alive) const;
+
+        [[nodiscard]] bool ShouldSurvival(int alive) const;
+
+
+        Rules &operator=(const Rules &rules);
+
+        Rules &operator=(Rules &&rules) noexcept ;
+
+    private:
         VecRules born {3};
 
         VecRules survival {2, 3};
 
     };
-    std::ostream &operator<<(std::ostream & lhs, const rules & rhs);
+    std::ostream &operator<<(std::ostream & lhs, const Rules & rhs);
 
     // -------------------------Universe------------------------- //
-    class universe {
+    class Universe {
 
     public:
-        explicit universe(const Field& field, rules rules);
-        explicit universe(int rows = 30, int cols = 40);
-        ~universe();
-        void Step();
+        // ---------------- Constructors -------------------
+        explicit Universe(const Field& field, Rules rules);
 
-        universe &Set(CellPos pos, CellType state = CellType::kAlive);
-        void Reset(CellPos pos);
+        explicit Universe(int rows = 30, int cols = 40);
 
-        [[nodiscard]] bool IsAlive(CellPos pos) const;
+        // ----------------- Destructor ----------------------
+        ~Universe();
 
-        [[nodiscard]] int Rows() const;
-        [[nodiscard]] int Cols() const;
 
-        void SetRules(const rules & rules);
-
-        void SetName(const std::string & s);
-
-        void ResetField();
-
-        void GenerateRandom();
-
-        void ResetUniverse();
-
+        // ------------------ Getters -------------------------
         [[nodiscard]] const std::string &GetName() const;
 
-        [[nodiscard]] const rules &GetRules() const;
+        [[nodiscard]] const Rules &GetRules() const;
 
         [[nodiscard]] int GetTickCount() const;
 
         [[nodiscard]] const Field &GetField() const;
 
+        [[nodiscard]] bool IsAlive(CellPos pos) const;
+
+        [[nodiscard]] int Rows() const;
+
+        [[nodiscard]] int Cols() const;
+
+
+        // --------------------- Setters ----------------------
+        Universe &Set(CellPos pos, CellType state = CellType::kAlive);
+
+        void Reset(CellPos pos);
+
+        void SetRules(const Rules & rules);
+
+        void SetName(const std::string & s);
+
+        void ResetField();
+
+        void ResetUniverse();
+
+        // -------------------- Actions ------------------------
+        void Step();
+
+        void GenerateRandom();
+
+
+
     private:
         int ticks_ {0};
         std::string name_ {};
         Field field_;
-        rules rules_;
+        Rules rules_;
     };
-    std::ostream & operator<<(std::ostream &lhs, const universe &rhs);
+    std::ostream & operator<<(std::ostream &lhs, const Universe &rhs);
 }
 
 

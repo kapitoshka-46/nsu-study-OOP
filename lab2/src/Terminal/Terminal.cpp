@@ -4,11 +4,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../file-handler/file_handler.h"
 #include <filesystem>
-#include <utility>
 #include <bits/this_thread_sleep.h>
+#include <format>
+#include <utility>
+
 #include "../signal-handler/signal_handler.h"
+#include "../file-handler/file_handler.h"
 
 using namespace terminal;
 using namespace core;
@@ -22,7 +24,7 @@ CommandDump::CommandDump(std::string path) : path_(std::move(path)){}
 
 void CommandDump::Execute(Terminal &term) {
     term.Log("Execute Dump");
-    universe const *u = term.GetUniverse();
+    Universe const *u = term.GetUniverse();
     if (!u) {
         term.WriteLine("No universe to save!");
         return;
@@ -58,7 +60,7 @@ CommandStep::CommandStep(const int num_steps) : num_steps_(num_steps) {}
 void CommandStep::Execute(Terminal &term) {
     term.Log(std::format("Execute Step {} times", num_steps_));
 
-    universe *u = term.GetUniverse();
+    Universe *u = term.GetUniverse();
 
     if (!u) {
         term.WriteLine("No Universe! Load it first.");
@@ -78,7 +80,7 @@ void CommandStep::Execute(Terminal &term) {
 }
 
 void CommandRandom::Execute(Terminal &term) {
-    universe *u = term.GetUniverse();
+    Universe *u = term.GetUniverse();
     if (!u) {
         term.InitUniverse();
         u = term.GetUniverse();
@@ -106,11 +108,11 @@ void CommandHelp::Execute(Terminal &term) {
     term.HelpMessage();
 }
 
-CommandLoad::CommandLoad(std::string &path) : path_(path) {}
+CommandLoad::CommandLoad(std::string path) : path_(std::move(path)) {}
 
 void CommandLoad::Execute(Terminal &term) {
     term.Log("Execute Load");
-    universe* u = term.GetUniverse();
+    Universe* u = term.GetUniverse();
     if (path_.empty()) {
         term.Log("Empty path!");
         term.WriteLine("Path is empty. Try \"load <path>\"");
@@ -165,7 +167,7 @@ void CommandSetSpeed::Execute(Terminal &term) {
 CommandLive::CommandLive(int num_ticks) : num_ticks_(num_ticks){};
 
 void CommandLive::Execute(Terminal &term) {
-    universe *u = term.GetUniverse();
+    Universe *u = term.GetUniverse();
 
     if (!u) {
         term.WriteLine("No Universe! Load it first.");
@@ -194,15 +196,15 @@ void CommandLive::Execute(Terminal &term) {
     term.ShowCursor();
 }
 
-void Terminal::Write(const std::string &msg) {
+void Terminal::Write(const std::string &msg) const {
     out_ << msg;
 }
 
-void Terminal::WriteLine(const std::string &msg) {
+void Terminal::WriteLine(const std::string &msg) const {
     out_ << msg << std::endl;
 }
 
-void Terminal::Log(const std::string &msg) {
+void Terminal::Log(const std::string &msg) const {
     if (is_loging) {
         //TODO: class Loger if i need more complex log systems
         out_ << "[Log]: " << msg << '\n';
@@ -213,13 +215,13 @@ bool Terminal::IsExit() const {
     return is_exit;
 }
 
-universe *Terminal::GetUniverse() {
+Universe *Terminal::GetUniverse() const {
     return universe_;
 }
 
 void Terminal::InitUniverse(int rows, int cols) {
     delete universe_;
-    universe_ = new universe(rows, cols);
+    universe_ = new Universe(rows, cols);
 }
 
 
@@ -241,7 +243,7 @@ void Terminal::ExecuteCommand(const std::string &command) {
     delete cmd;
 }
 
-Command *Terminal::ParseCommand(const std::string &line) {
+Command *Terminal::ParseCommand(const std::string &line) const {
 
     std::istringstream iss(line);
 
@@ -377,7 +379,7 @@ Command *Terminal::ParseCommand(const std::string &line) {
 
     return new CommandInvalid(line);
 }
-Command *Terminal::GetUserCommand() {
+Command *Terminal::GetUserCommand() const {
     out_ << kPrompt;
 
     if (sig_handler::SigHandler::IsStopping()) {
@@ -389,7 +391,7 @@ Command *Terminal::GetUserCommand() {
     return ParseCommand(line);
 }
 
-void Terminal::DisplayUniverse() {
+void Terminal::DisplayUniverse() const {
     if (!universe_) {
         WriteLine("Empty Universe");
         return;
@@ -403,22 +405,22 @@ void Terminal::SendExit() {
     is_exit = true;
 }
 
-void Terminal::HideCursor() {
+void Terminal::HideCursor() const {
     Write("\033[?25l"); // ANSI hide cursor
 }
-void Terminal::ClearScreen() {
+void Terminal::ClearScreen() const {
     Write("\033[2J");  // ANSI clear screen
 }
-void Terminal::MoveCursorToStart() {
+void Terminal::MoveCursorToStart() const {
     Write("\033[H");    // ANSI move cursor to (0,0)
 }
-void Terminal::ShowCursor() {
+void Terminal::ShowCursor() const {
     Write("\033[?25h"); // ANSI show cursor
 }
 
 
 
-void Terminal::SetSpeed(int speed) {
+void Terminal::SetSpeed(const int speed) {
     if (speed <= 0) {
         throw std::invalid_argument("speed should be > 0");
     }
@@ -434,12 +436,11 @@ void Terminal::RunLoop() {
 
         Command *cmd  = GetUserCommand();
         cmd->Execute(*this);
-
         delete cmd;
     }
 }
 
-void Terminal::HelpMessage() {
+void Terminal::HelpMessage() const {
     WriteLine("\nCommands:");
     WriteLine("    load <filename>            Load universe from Life 1.06 file");
     WriteLine("    dump | dump <filename>     Save current universe state to Life 1.06 file");
@@ -452,7 +453,7 @@ void Terminal::HelpMessage() {
     WriteLine("");  // --------------------------------------
     WriteLine("    live <num>                 Run live mode for num ticks");
     WriteLine("    speed                      Show current speed");
-    WriteLine("    speed <value               Change speed of live");
+    WriteLine("    speed <value>              Change speed of live");
     WriteLine("");  // --------------------------------------
     WriteLine("    clear                      Clear the screen");
     WriteLine("    exit                       Exit from the game");

@@ -8,13 +8,11 @@
 
 using namespace core;
 
-CellPos parse_coordinates_line(std::string& line);
+CellPos parse_coordinates_line(const std::string &line);
 
 VecRules parse_rules(std::string const &s, char prefix);
 
-
-
-void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback print function */) {
+void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback print function */) {
     if (!in) {
         throw std::invalid_argument("Cannot open a file");
     }
@@ -31,26 +29,26 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
     std::string name = "Unnamed";
     std::getline(in, line);
 
-    rules rules {{}, {}};
+    Rules rules {{}, {}};
     if (line != "#Life 1.06") {
         std::cout << "Invalid line: \"" << line << "\"\n";
         std::cout << "Warning: Unknown file format.\n";
         std::cout << "Please, use Life 1.06 file format\n";
-        std::cout << "Loading stopped\n";
+        std::cout << "Loading stopped" << std::endl;
         return;
     }
     bool is_name_set = false;
     bool is_rools_set = false;
     while (std::getline(in, line)) {
         if (line.empty()) {
-            std::cout << "Skip empty line\n";
+            std::cout << "Skip empty line" << std::endl;
             continue;
         }
         // #N Name of universe
         if (line[0] == '#') {
             if (line.substr(0, 3) == "#N ") {   // name
                 if (is_name_set) {
-                    std::cout <<"Warning: founded more then one names. Using first one\n";
+                    std::cout <<"Warning: founded more then one names. Using first one" << std::endl;
                     continue;
                 }
                 name = line.substr(3);
@@ -59,20 +57,24 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
             // #R Bxyz/Sabc
             if (line.substr(0, 3) == "#R ") {    // rules
                 if (is_rools_set) {
-                    std::cout << "[Warning] founded more then one rules. Using first one\n";
+                    std::cout << "[Warning] founded more then one rules. Using first one" << std::endl;
                     continue;
                 }
                 is_rools_set = true;
-                rules.born = parse_rules(line, 'B');
-                rules.survival = parse_rules(line, 'S');
+                rules = Rules{parse_rules(line, 'B'), parse_rules(line, 'S')};
             }
         }
         else {
-            CellPos cell = parse_coordinates_line(line);
-            if (!cell.IsValid()) {
-                std::cout << "[Warning] Invalid coordinate line: \"" << line << "\"\n";
-                continue;
+            CellPos cell;
+            try {
+                cell = parse_coordinates_line(line);
             }
+            catch (std::invalid_argument &ex) {
+                std::cout << "[Error] Invalid coordinate line: \"" << line << "\"" << std::endl;
+                std::cout << "Stop loading" << std::endl;
+                return;
+            }
+
             if (cell.row > max.row) {   max.row = cell.row;     }
             if (cell.col > max.col) {   max.col = cell.col;     }
             if (cell.row < min.row) {   min.row = cell.row;     }
@@ -84,6 +86,7 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
         }
     }
 
+    // checking can we contain cells on the field
     if (delta_row > u.Rows()) {
         throw std::logic_error("[Error] Figure in file needs more rows then max available rows");
     }
@@ -93,16 +96,17 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
     if (delta_row < 0 || delta_col < 0) {
         throw std::logic_error("[Error] Unexpected error. min > max ?");
     }
-    if (rules.born.empty()) {
+
+    if (rules.GetBorn().empty()) {
         std::cout << "[Warning] No born rules found. Using default: Born if 3 cells alive.\n";
-        rules.born = rules::GetDefaultBorn();
+        rules.SetDefaultBorn();
     }
-    if (rules.survival.empty()) {
+    if (rules.GetSurvival().empty()) {
         std::cout << "[Warning] No survival rules found. Using default: Survive if 2 or 3 cells alive.\n";
-        rules.survival = rules::GetDefaultSurvival();
+        rules.SetDefaultSurvival();
     }
 
-
+    // move cells to the center
     CellPos origin {u.Rows() / 2 - delta_row / 2, u.Cols() / 2 - delta_col / 2};
     for (auto &cell : cells) {
         cell += origin - min;
@@ -116,18 +120,21 @@ void file_handler::LoadFromFile(std::ifstream &in, universe& u /*, callback prin
     std::cout << "Loading complete!" << std::endl;;
 }
 
-void file_handler::SaveToFile(std::ofstream &out, const core::universe &u) {
+void file_handler::SaveToFile(std::ofstream &out, const core::Universe &u) {
+    // save file format line
     out << "#Life 1.06\n";
+
+    // save name
     out << "#N " + u.GetName() + '\n';
-    const rules &rules = u.GetRules();
+    const Rules &rules = u.GetRules();
 
     // save rules
     out << "#R B";
-    for (auto rule : rules.born) {
+    for (const auto &rule : rules.GetBorn()) {
         out << static_cast<int>(rule);
     }
     out << "/S";
-    for (auto rule: rules.survival) {
+    for (const auto &rule: rules.GetSurvival()) {
         out << static_cast<int>(rule);
     }
     out << '\n';
@@ -142,23 +149,24 @@ void file_handler::SaveToFile(std::ofstream &out, const core::universe &u) {
     }
 }
 
-CellPos parse_coordinates_line(std::string& line) {
-    constexpr int ERROR_VAL = INT_MIN;
-    std::istringstream iss {line};
-    int col = ERROR_VAL;    // TODO: сделать operator>> который будет в CellPos записывать данные
-    int row = ERROR_VAL;
-    iss >> col >> row;
+CellPos parse_coordinates_line(const std::string &line) {
 
-    return CellPos(row, col);
+    std::istringstream iss {line};
+    int col;
+    int row;
+    if (iss >> col >> row) {
+        return CellPos{row, col};
+    }
+    throw std::invalid_argument("Invalid CellPos");
 }
 
-VecRules parse_rules(std::string const &s, char prefix) {
+VecRules parse_rules(std::string const &s, const char prefix) {
     VecRules rules {};
     size_t pos = s.find_first_of(prefix);
     if (pos != std::string::npos) {
         pos += 1;
         while (std::isdigit(s[pos])) {
-            rules.push_back(s[pos] - '0');
+            rules.push_back(static_cast<char>(s[pos] - '0'));
             pos++;
         }
     }
