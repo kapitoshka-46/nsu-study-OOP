@@ -2,6 +2,8 @@
 #define TERMINAL_H
 
 
+#include <memory>
+
 #include "../core/Core.h"
 
 namespace terminal {
@@ -93,7 +95,7 @@ namespace terminal {
         std::ostream &out_;
         core::Universe *universe_ { nullptr };
 
-        [[nodiscard]] Command *ParseCommand(const std::string &line) const;
+        [[nodiscard]] std::unique_ptr<Command> ParseCommand(const std::string &line) const;
     public:
         // ---------------- Constructors ----------------
         Terminal(std::istream &in, std::ostream &out);
@@ -106,7 +108,7 @@ namespace terminal {
 
         [[nodiscard]] core::Universe *GetUniverse() const;
 
-        [[nodiscard]] Command* GetUserCommand() const;    // waits for user prompt
+        [[nodiscard]] std::unique_ptr<Command> GetUserCommand() const;    // waits for user prompt
 
         [[nodiscard]] int GetSpeed() const;
 

@@ -238,12 +238,11 @@ Terminal::~Terminal() {
 }
 
 void Terminal::ExecuteCommand(const std::string &command) {
-    Command *cmd = ParseCommand(command);
+    std::unique_ptr<Command> cmd = ParseCommand(command);
     cmd->Execute(*this);
-    delete cmd;
 }
 
-Command *Terminal::ParseCommand(const std::string &line) const {
+std::unique_ptr<Command> Terminal::ParseCommand(const std::string &line) const {
 
     std::istringstream iss(line);
 
@@ -251,18 +250,18 @@ Command *Terminal::ParseCommand(const std::string &line) const {
     iss >> param;
 
     if (param == "help" or param == "?") {
-        return new CommandHelp();
+        return std::make_unique<CommandHelp>();
     }
 
     if (param  == "exit") {
-        return new CommandExit();
+        return std::make_unique<CommandExit>();
     }
     if (param.empty()) {
-        return new CommandEmpty();
+        return std::make_unique<CommandEmpty>();
     }
 
     if (param == "clear") {
-        return new CommandClear();
+        return std::make_unique<CommandClear>();
     }
 
     if (param == "speed") {
@@ -271,12 +270,12 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         if  (iss.bad()){
             WriteLine("Unexpected error while reading input. Please try again.");
             Log("Badbit is set!");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
         if (speed_str.empty()) {
             WriteLine("Current speed: " + std::to_string(speed_) + " (default=5)");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
         int speed;
         try {
@@ -285,23 +284,23 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         catch (std::exception &e) {
             Log(std::format("Exception {}",e.what()));
             WriteLine("Speed should be a positive integer number. Try: \"speed <num>\"");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
         if (speed <= 0) {
             WriteLine("Speed should be a positive integer number. Try: \"speed <num>\"");\
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
-        return new CommandSetSpeed(speed);
+        return std::make_unique<CommandSetSpeed>(speed);
     }
 
     if (param == "dump") {
         std::string filename;
         iss >> filename;
-        return new CommandDump(filename);
+        return std::make_unique<CommandDump>(filename);
     }
 
     if (param == "random") {
-        return new CommandRandom();
+        return std::make_unique<CommandRandom>();
     }
 
     if (param == "tick" or param == "t") {
@@ -310,11 +309,11 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         if  (iss.bad()){
             WriteLine("Unexpected error while reading input. Please try again.");
             Log("Badbit is set!");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
         if (num_ticks_str.empty()) {
-            return new CommandStep();
+            return std::make_unique<CommandStep>();
         }
 
         int num_ticks = 0;
@@ -325,10 +324,10 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         catch (std::exception &e) {
             Log(std::format("Exception {}",e.what()));
             WriteLine("Num of ticks should be a number. Try: \"tick <num>\"");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
-        return new CommandStep(num_ticks);
+        return std::make_unique<CommandStep>(num_ticks);
     }
 
     if (param == "live") {
@@ -338,12 +337,12 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         if (iss.bad()){
             WriteLine("Unexpected error while reading input. Please try again.");
             Log("Badbit is set!");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
         if (num_ticks_str.empty()) {
             WriteLine("You need to specify number of ticks that universe should live");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
         int num_ticks = 0;
@@ -354,14 +353,14 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         catch (std::exception &e) {
             Log(std::format("Exception {}",e.what()));
             WriteLine("Num of ticks should be a number. Example: \"live 100\"");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
-        return new CommandLive(num_ticks);
+        return std::make_unique<CommandLive>(num_ticks);
     }
 
     if (param == "show") {
-        return new CommandShow();
+        return std::make_unique<CommandShow>();
     }
 
     if (param == "load") {
@@ -371,19 +370,20 @@ Command *Terminal::ParseCommand(const std::string &line) const {
         if (filename.empty()) {
             Log("Empty filename.");
             WriteLine("You need to specify the filename.");
-            return new CommandEmpty();
+            return std::make_unique<CommandEmpty>();
         }
 
-        return new CommandLoad(filename);
+        return std::make_unique<CommandLoad>(filename);
     }
 
-    return new CommandInvalid(line);
+    return std::make_unique<CommandInvalid>(line);
 }
-Command *Terminal::GetUserCommand() const {
+
+std::unique_ptr<Command> Terminal::GetUserCommand() const {
     out_ << kPrompt;
 
     if (sig_handler::SigHandler::IsStopping()) {
-        return new CommandExit();
+        return std::make_unique<CommandExit>();
     }
     std::string line;
     std::getline(in_, line);
@@ -433,10 +433,8 @@ int Terminal::GetSpeed() const {
 
 void Terminal::RunLoop() {
     while (not IsExit()) {
-
-        Command *cmd  = GetUserCommand();
+        std::unique_ptr<Command> cmd  = GetUserCommand();
         cmd->Execute(*this);
-        delete cmd;
     }
 }
 

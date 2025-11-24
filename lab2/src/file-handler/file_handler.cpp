@@ -1,3 +1,4 @@
+#include <gtest/gtest.h>
 #include "file_handler.h"
 
 #include <fstream>
@@ -107,7 +108,7 @@ void file_handler::LoadFromFile(std::ifstream &in, Universe& u /*, callback prin
     }
 
     // move cells to the center
-    CellPos origin {u.Rows() / 2 - delta_row / 2, u.Cols() / 2 - delta_col / 2};
+    CellPos origin {(u.Rows() - delta_row) / 2, (u.Cols() - delta_col) / 2};
     for (auto &cell : cells) {
         cell += origin - min;
         u.Set(cell);

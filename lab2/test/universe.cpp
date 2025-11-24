@@ -19,6 +19,8 @@ TEST(Constructor, ZeroOrNegativeSize) {
     ASSERT_THROW(Universe(-1, -1), std::invalid_argument);
 
 }
+// test save load
+
 
 TEST(GetTickCount, AfterSteps) {
     Universe u {10,30};

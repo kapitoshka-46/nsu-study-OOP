@@ -13,8 +13,10 @@ add_executable(gtest_run boat.cpp
         ../src/core/Universe.cpp
         ../src/core/Rules.cpp
         ../src/core/Field.cpp
+        ../src/file-handler/file_handler.cpp
         rules.cpp
-        universe.cpp)
+        universe.cpp
+        save_load.cpp)
 
 target_link_libraries(gtest_run GTest::gtest GTest::gtest_main)
 
