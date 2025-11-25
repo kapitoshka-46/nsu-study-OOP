@@ -16,12 +16,15 @@ namespace sound_processor {
     void SoundProcessor::RunPipeline() const {
         if (files.empty()) {return;}
 
-        const std::string tmp_dir = "tmp";
+        const std::string work_dir = "tmp";
 
         // use tmp directory. remember to move out.wav from it and delete!
-        fs::create_directory(tmp_dir);
-        std::string input = tmp_dir + "/" + fs::path(files[0]).filename().string();
-        std::string output = tmp_dir + "/" + "out.wav";
+        // TODO: use tmp_dir from filesystem library
+        // warning! user can have their own dir named `tmp`. and program just delete it, lol
+        fs::remove_all(work_dir);
+        fs::create_directory(work_dir);
+        fs::path input = work_dir + "/" + fs::path(files[0]).replace_filename("first.wav").filename().string();
+        fs::path output = work_dir + "/" + "second.wav";
 
         fs::copy(files[0], input, fs::copy_options::update_existing);
 
@@ -30,15 +33,24 @@ namespace sound_processor {
             WAVStreamInput audio_in {input};
             WAVStreamOutput audio_out {output, 44100, 16};
 
-            std::cout << color::bold  << color::blue <<":: Applying " << converter->GetName() << color::reset <<std::endl;
+            std::cout << color::bold << color::blue <<":: Applying " << converter->GetName() << color::reset <<std::endl;
+            std::cout << color::bold << color::green << input.filename() << color::reset << " --> " << color::green <<
+                    output.filename() << color::reset << std::endl;
             converter->Apply(audio_in, audio_out);
-            audio_in.Rewind();
-            audio_out.Rewind();
 
             std::swap(input, output);
         }
+        std::cout << color::bold << color::blue <<":: Saving results" << color::reset << std::endl;
 
+        std::swap(input, output);
+        fs::path result {output};
+        result.replace_filename("result.wav");
 
+        std::cout << color::green << output.filename() << color::reset << " ==> "
+                  << color::green << result.filename() << color::reset << std::endl;
+
+        fs::copy(output, result, fs::copy_options::update_existing); // TODO: обрабатывать случай, если файл уже есть
+        std::cout << "Result is wrote to: " << color::bold << result << std::endl;
 
     }
 }

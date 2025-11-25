@@ -1,8 +1,12 @@
 #ifndef ISAMPLESTREAM_H
 #define ISAMPLESTREAM_H
 #include <cstdint>
+#include <chrono>
 
 namespace audio_stream {
+    using Seconds = int;
+
+    inline int seconds_to_samples(int sec, int sample_rate) {return sec * sample_rate;};
 
     class BaseAudiostream {
     public:
@@ -13,6 +17,10 @@ namespace audio_stream {
         virtual void Rewind() = 0;
 
         virtual void Skip(size_t num_of_samples) = 0;
+
+        [[nodiscard]] virtual uint32_t GetSampleRate() const = 0;
+
+        [[nodiscard]] virtual uint16_t GetDepth() const = 0;
 
         virtual void Seek(size_t num_of_samples, std::ios_base::seekdir dir) = 0;
     };
@@ -48,6 +56,10 @@ namespace audio_stream {
         void Skip(size_t num_of_samples) override = 0;
 
         void Seek(size_t num_of_samples, std::ios_base::seekdir dir) override = 0;
+
+        [[nodiscard]] uint16_t GetDepth() const override = 0;
+
+        [[nodiscard]] uint32_t GetSampleRate() const override = 0;
 
     };
 }

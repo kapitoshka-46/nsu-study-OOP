@@ -5,11 +5,7 @@
 #include "../converters/i_converter.h"
 
 namespace converter {
-    struct HelpDescriptor {
-        std::string description;
-        std::vector<std::string> parameters;
-        std::vector<std::string> examples;
-    };
+
 
     class ConverterFactory {
     public:
@@ -20,9 +16,8 @@ namespace converter {
 
 
         // add converter to factory in runtime.
-        void RegisterConverter(const std::string &name, Creator creator, HelpDescriptor help_desc) {
+        void RegisterConverter(const std::string &name, Creator creator) {
             creators[name] = std::move(creator);
-            converters_helpers.push_back(help_desc);
         }
 
         std::unique_ptr<IConverter> CreateConverter(std::string const &name, size_t line, Params const &params) {
@@ -38,7 +33,6 @@ namespace converter {
 
     private:
         std::unordered_map<std::string /*name*/, Creator /* constructor func */> creators;
-        std::vector <HelpDescriptor> converters_helpers;    // contains info for help message for every converter
         std::vector<int> input_sources;
     };
 }

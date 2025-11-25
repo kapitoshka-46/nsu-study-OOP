@@ -7,14 +7,25 @@
 
 
 namespace cfg {
-    template<typename T>
-    std::string repeat_char(T num, char c) {
+    std::string repeat_char(int num, char c) {
         std::string spaced;
         spaced.reserve(num);
         for (auto i = 0; i < num; i++) {
             spaced.push_back(c);
         }
         return spaced;
+    }
+
+    void Lexer::SkipSpaces() {
+
+    }
+
+    std::string remove_spaces(const std::smatch::string_type & str) {
+        auto beg = str.find_first_not_of(" ");
+        auto end = str.find_last_not_of(" ");
+        if (beg == std::smatch::string_type::npos) {beg = 0;}
+        if (end == std::smatch::string_type::npos) {end = str.length();}
+        return str.substr(beg, end + 1);
     }
 
     bool Lexer::Next() {
@@ -30,6 +41,7 @@ namespace cfg {
         if (line.empty()) { return true; }
 
         for (const auto &token_kind: kAllTokens) {
+            SkipSpaces();
             std::regex re(R"(^\s*)" + RegexpForToken(token_kind));
             std::smatch match;
             if (std::regex_search(line.cbegin() + pos_.x, line.cend(), match, re)) {
@@ -37,7 +49,7 @@ namespace cfg {
                 //std::cout << "match expr at " << pos_ << ": " << match.str() << '\n';
                 pos_.x += match.length();
                 if (token_kind != kComment) {    // don't need comments and NewLines
-                    tokens_.emplace_back(token_kind, match.str(), pos_);
+                    tokens_.emplace_back(token_kind, remove_spaces(match.str()), pos_);
                 }
                 return true;
             }

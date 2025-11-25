@@ -77,8 +77,9 @@ namespace audio_stream {
             file.seekg(num_of_samples * header.fmt_chunk.bits_per_sample, dir);
         };
 
-        uint32_t GetSampleRate() const {return header.fmt_chunk.sample_rate;}
-        uint16_t GetDepth() const {return header.fmt_chunk.bits_per_sample;}
+        uint32_t GetSampleRate() const override {return header.fmt_chunk.sample_rate;}
+
+        uint16_t GetDepth() const override {return header.fmt_chunk.bits_per_sample;}
 
         void Rewind() override;
     private:
@@ -110,6 +111,10 @@ namespace audio_stream {
         void Skip(size_t num_of_samples) override {
             file.seekp(num_of_samples * depth / 8, std::ios::cur);
         }
+
+        uint32_t GetSampleRate() const override {return sample_rate;}
+
+        uint16_t GetDepth() const override {return depth;}
 
         void Rewind() override;
     private:

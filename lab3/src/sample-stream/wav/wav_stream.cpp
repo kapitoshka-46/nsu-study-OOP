@@ -77,14 +77,14 @@ WAVStreamInput::WAVStreamInput(const std::string& input_filename) {
         chunk.Read(file);
         // ----------------------------- fmt chunk --------------------------------------
         if (chunk.GetID_Str() == "fmt ") {
-            std::cout << "found `format` subchunk" << std::endl;
+           // std::cout << "found `format` subchunk" << std::endl;
             file.seekg(-static_cast<int>(sizeof(chunk)), std::ios_base::cur);
             fmt.Read(file);
-            std::cout << "\tsample rate: " << fmt.sample_rate << "\n";
-            std::cout << "\tdepth: " << fmt.bits_per_sample << "\n";
-            std::cout << "\tnum of channels: " << fmt.num_channels << "\n";
-            std::cout << "\taudio format: " << fmt.audio_format_i << "\n";
-            std::cout << "\tbytes for 1 sample and all channels : " << fmt.block_align << "\n";
+            // std::cout << "\tsample rate: " << fmt.sample_rate << "\n";
+            // std::cout << "\tdepth: " << fmt.bits_per_sample << "\n";
+            // std::cout << "\tnum of channels: " << fmt.num_channels << "\n";
+            // std::cout << "\taudio format: " << fmt.audio_format_i << "\n";
+            // std::cout << "\tbytes for 1 sample and all channels : " << fmt.block_align << "\n";
 
             if (fmt.sample_rate != 44100) {
                 throw std::invalid_argument("Unsupported sample rate: " + std::to_string(fmt.sample_rate));
@@ -102,7 +102,7 @@ WAVStreamInput::WAVStreamInput(const std::string& input_filename) {
 
         // -------------------------- data chunk --------------------------------
         else if (chunk.GetID_Str() == "data") {
-            std::cout << "found `data` subchunk" << std::endl;
+        //    std::cout << "found `data` subchunk" << std::endl;
             is_found_data = true;
             data_header = chunk;
             break;
@@ -132,10 +132,11 @@ void WAVStreamInput::Rewind() {
     file.seekg(sizeof(WavHeader), std::ios::beg);
 }
 
-WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth)  : file(ouput_filename, std::ios::binary) {
+WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth) : file(
+        ouput_filename, std::ios::binary), sample_rate(sample_rate), depth(depth) {
     // a lot of specific file format code !!
     // works with mono wav
-    if (depth % 8 != 0) {throw std::invalid_argument("depth is not divides by 8:" + std::to_string(depth));}
+    if (depth % 8 != 0) { throw std::invalid_argument("depth is not divides by 8:" + std::to_string(depth)); }
 
     WavHeader header{};
 

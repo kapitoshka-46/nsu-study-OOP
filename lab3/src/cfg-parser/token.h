@@ -2,7 +2,6 @@
 #define TOKEN_H
 
 #include <string>
-#include <vector>
 #include <chrono>
 #include <regex>
 
@@ -30,7 +29,7 @@ namespace cfg {
         switch (t) {
             case kComment:   return R"(\#.*$)";
             case kVar:       return R"(\$\d+)";
-            case kTimeStamp: return R"( \d+)";
+            case kTimeStamp: return R"(\d+)";
             case kConverter: return R"(\s*([a-z_]+))";
             case kNewLine:   return R"(\n)";
             default: throw std::invalid_argument("RegexpForToken: Unknown token kind");

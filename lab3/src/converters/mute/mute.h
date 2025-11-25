@@ -6,6 +6,7 @@
 
 
 namespace converter {
+
     class Mute : public IConverter {
 
     public:
@@ -13,8 +14,15 @@ namespace converter {
         explicit Mute(Seconds start, Seconds end);
         void Apply(IAudioIn &input, IAudioOut & output) override;
 
-        std::string GetName() const override {return "mute";}
+        [[nodiscard]] std::string GetName() const override {return "mute";}
 
+        [[nodiscard]] HelpDescriptor GetHelpDescriptor() const override;
+
+    private:
+        static constexpr int Unset = -1;
+
+        int start_seconds = Unset;
+        int end_seconds = Unset;
     };
 }
 

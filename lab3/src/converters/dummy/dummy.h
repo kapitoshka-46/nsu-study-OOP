@@ -11,7 +11,10 @@ namespace converter {
         Dummy() = default;
         void Apply(IAudioIn &input, IAudioOut &output) override;
 
-        std::string GetName() const override {return "dummy";}
+        [[nodiscard]] std::string GetName() const override {return "dummy";}
+
+        [[nodiscard]] HelpDescriptor GetHelpDescriptor() const override;
+
     };
 
 }

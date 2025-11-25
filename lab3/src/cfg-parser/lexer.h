@@ -16,6 +16,8 @@ namespace cfg {
         Point<size_t> pos_ = {0, 0};
         std::vector<Token> tokens_;
 
+        void SkipSpaces();
+
         bool Next();
 
     public:

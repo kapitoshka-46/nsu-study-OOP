@@ -19,7 +19,7 @@ namespace cfg {
         lhs << "  Token { "
             << color::bold << "kind: "      << color::reset << color::yellow << rhs.kind << color::reset
             << color::bold << ", pos: "     << color::reset << color::reset << rhs.pos  << color::reset
-            << color::bold << ", text: "    << color::reset << color::green << rhs.text << color::reset
+            << color::bold << ", text: "    << color::reset << color::green << "`"<< rhs.text << "`" << color::reset
             << " }";
         return lhs;
     }

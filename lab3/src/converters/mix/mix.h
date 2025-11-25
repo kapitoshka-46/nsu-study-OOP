@@ -14,7 +14,9 @@ namespace converter {
 
         void Apply(IAudioIn &input, IAudioOut &output) override;
 
-        std::string GetName() const override {return "mix";}
+        [[nodiscard]] std::string GetName() const override {return "mix";}
+
+        HelpDescriptor GetHelpDescriptor() const override;
     };
 }
 
