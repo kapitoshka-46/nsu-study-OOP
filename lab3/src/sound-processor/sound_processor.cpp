@@ -42,7 +42,8 @@ namespace sound_processor {
         }
         std::cout << color::bold << color::blue <<":: Saving results" << color::reset << std::endl;
 
-        std::swap(input, output);
+        std::swap(input, output);   // because we swapped input <-> output in the end of for-cycle
+
         fs::path result {output};
         result.replace_filename("result.wav");
 
