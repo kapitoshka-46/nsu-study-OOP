@@ -8,15 +8,23 @@
 namespace converter {
     class Mix : public IConverter{
     public:
-        explicit Mix(std::vector<std::string> others);
-        Mix(std::vector<std::string> others, Seconds start);
-        Mix(std::vector<std::string> others, Seconds start, Seconds end);
 
-        void Apply(IAudioIn &input, IAudioOut &output) override;
+        explicit Mix(std::vector<int> others);
+        Mix(std::vector<int> others, Seconds start);
+        Mix(std::vector<int> others, Seconds start, Seconds end);
+
+        void Apply(audio_stream::Context & input_ctx, IAudioOut &output) override;
 
         [[nodiscard]] std::string GetName() const override {return "mix";}
 
-        HelpDescriptor GetHelpDescriptor() const override;
+        [[nodiscard]] HelpDescriptor GetHelpDescriptor() const override;
+    private:
+        Seconds start_seconds = 0;
+        Seconds end_seconds = Unset;
+        std::vector<int>(others);
+
+        static constexpr Seconds Unset = std::numeric_limits<Seconds>::max();
+
     };
 }
 

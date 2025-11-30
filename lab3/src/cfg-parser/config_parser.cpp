@@ -36,7 +36,7 @@ std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const s
 std::vector<NameLineParams> GetNamesAndParams(const std::string &filename) {
     Lexer lexer {filename};
     auto tokens = lexer.GetTokensList();
-    print_tokens(tokens);
+    //print_tokens(tokens);
 
     Params params {};
     size_t line = 0;
@@ -81,22 +81,22 @@ std::vector<NameLineParams> GetNamesAndParams(const std::string &filename) {
 }
 
 void print_str_and_params(std::vector<NameLineParams> x) {
-    for (auto triple : x) {
+    for (const auto& triple : x) {
         auto [name, pos, params] = triple;
-        std::cout << color::bold << "name: " << color::reset <<  name << "\n\t";
-        std::cout << color::bold << "line : " << color::reset << pos << "\n\t";
-        std::cout << color::bold << "params: " << color::reset;
-        for (auto source : params.streams) {
-            std::cout << source << " ";
-        }
-        for (auto timestamp : params.time_stamps) {
-            std::cout << timestamp << " ";
-        }
-        std::cout << "\n";
+        // std::cout << color::bold << "name: " << color::reset <<  name << "\n\t";
+        // std::cout << color::bold << "line : " << color::reset << pos << "\n\t";
+        // std::cout << color::bold << "params: " << color::reset;
+        // for (const auto& source : params.streams) {
+        //     std::cout << source << " ";
+        // }
+        // for (auto timestamp : params.time_stamps) {
+        //     std::cout << timestamp << " ";
+        // }
+        //std::cout << "\n";
     }
 }
 
-void print_tokens(const std::vector<cfg::Token> &vec) {
+void print_tokens(const std::vector<Token> &vec) {
     for (auto const &t : vec) {
         std::cout << t << '\n';
     }

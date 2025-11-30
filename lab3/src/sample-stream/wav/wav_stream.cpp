@@ -52,9 +52,10 @@ void WavHeader::Write(std::ofstream &file) {
 
 }
 
+// https://en.wikipedia.org/wiki/WAV
 WAVStreamInput::WAVStreamInput(const std::string& input_filename) {
     // reading header until `data` subchunk
-    // https://en.wikipedia.org/wiki/WAV
+
 
     file.open(input_filename, std::ios::binary);
 

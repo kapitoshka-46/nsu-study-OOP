@@ -6,6 +6,7 @@
 #include "../converters-factory/converter_factory.h"
 
 namespace sound_processor {
+
     class SoundProcessor {
 
     public:
@@ -14,7 +15,7 @@ namespace sound_processor {
         void RunPipeline() const;
 
     private:
-        const std::vector<std::string> &files;
+        const std::vector<std::string> &input_files;
         cfg::PointersToConverters converters_;
     };
 

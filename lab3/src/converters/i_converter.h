@@ -29,7 +29,7 @@ namespace converter {
     class IConverter {
     public:
         virtual ~IConverter() = default;
-        virtual void Apply(IAudioIn &input, IAudioOut &output) = 0;
+        virtual void Apply(audio_stream::Context & input, IAudioOut &output) = 0;
 
         [[nodiscard]] virtual std::string GetName() const = 0;
 

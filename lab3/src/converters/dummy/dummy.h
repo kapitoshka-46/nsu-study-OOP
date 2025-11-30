@@ -9,7 +9,7 @@ namespace converter {
     class Dummy : public IConverter{
     public:
         Dummy() = default;
-        void Apply(IAudioIn &input, IAudioOut &output) override;
+        void Apply(audio_stream::Context & input_ctx, IAudioOut &output) override;
 
         [[nodiscard]] std::string GetName() const override {return "dummy";}
 

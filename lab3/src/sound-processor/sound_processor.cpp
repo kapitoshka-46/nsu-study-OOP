@@ -6,15 +6,18 @@
 namespace fs = std::filesystem;
 using namespace audio_stream;
 namespace sound_processor {
+
+
+
     SoundProcessor::SoundProcessor(const std::string& config, const std::vector<std::string>& files)
         // get ptrs to all converters that we need in config file
-        : files(files),
+        : input_files(files),
         // store files for opening them later
         converters_(cfg::Parser::GetConvertersFromConfig(config, files))
     {}
 
     void SoundProcessor::RunPipeline() const {
-        if (files.empty()) {return;}
+        if (input_files.empty()) {return;}
 
         const std::string work_dir = "tmp";
 
@@ -23,34 +26,37 @@ namespace sound_processor {
         // warning! user can have their own dir named `tmp`. and program just delete it, lol
         fs::remove_all(work_dir);
         fs::create_directory(work_dir);
-        fs::path input = work_dir + "/" + fs::path(files[0]).replace_filename("first.wav").filename().string();
-        fs::path output = work_dir + "/" + "second.wav";
+        fs::path input_path = work_dir + "/" + fs::path(input_files[0]).replace_filename("first.wav").filename().string();
+        fs::path output_path = work_dir + "/" + "second.wav";
 
-        fs::copy(files[0], input, fs::copy_options::update_existing);
+        fs::copy(input_files[0], input_path, fs::copy_options::update_existing);
 
+
+        WAVContext ctx {input_path, input_files};
+
+        // file1 -> converter1 -> file2 -> converter2 -> file1 -> ... ->
         for (auto &converter : converters_) {
-
-            WAVStreamInput audio_in {input};
-            WAVStreamOutput audio_out {output, 44100, 16};
+            WAVStreamOutput audio_out {output_path, 44100, 16};
 
             std::cout << color::bold << color::blue <<":: Applying " << converter->GetName() << color::reset <<std::endl;
-            std::cout << color::bold << color::green << input.filename() << color::reset << " --> " << color::green <<
-                    output.filename() << color::reset << std::endl;
-            converter->Apply(audio_in, audio_out);
+            std::cout << color::bold << color::green << input_path.filename() << color::reset << " --> " << color::green <<
+                    output_path.filename() << color::reset << std::endl;
+            converter->Apply(ctx, audio_out);
 
-            std::swap(input, output);
+            std::swap(input_path, output_path); //
+            ctx.SetMainInputStream(input_path); // set to swapped file
         }
         std::cout << color::bold << color::blue <<":: Saving results" << color::reset << std::endl;
 
-        std::swap(input, output);   // because we swapped input <-> output in the end of for-cycle
+        std::swap(input_path, output_path);   // because we swapped input <-> output in the end of for-cycle
 
-        fs::path result {output};
+        fs::path result {output_path};
         result.replace_filename("result.wav");
 
-        std::cout << color::green << output.filename() << color::reset << " ==> "
+        std::cout << color::green << output_path.filename() << color::reset << " ==> "
                   << color::green << result.filename() << color::reset << std::endl;
 
-        fs::copy(output, result, fs::copy_options::update_existing); // TODO: обрабатывать случай, если файл уже есть
+        fs::copy(output_path, result, fs::copy_options::update_existing); // TODO: обрабатывать случай, если файл уже есть
         std::cout << "Result is wrote to: " << color::bold << result << std::endl;
 
     }

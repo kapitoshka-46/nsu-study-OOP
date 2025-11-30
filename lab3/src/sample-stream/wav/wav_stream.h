@@ -9,6 +9,9 @@
 #include "../ISampleStream.h"
 
 namespace audio_stream {
+
+
+
     struct BaseChunk {
         union {
             int8_t chunk_id[4];     // careful. it is not a null-terminated C string! -- do not do `reinterpret_cast<char*>(&chunk_id) !!!!!!!`
@@ -66,7 +69,8 @@ namespace audio_stream {
             return static_cast<bool>(file);
         }
 
-         IAudioIn &operator>>(uint16_t &value) override {
+
+         IAudioIn &operator>>(IntSample &value) override {
             file.read(reinterpret_cast<char*>(&value), sizeof(value));
             return *this;
         }
@@ -83,7 +87,7 @@ namespace audio_stream {
 
         void Rewind() override;
     private:
-        std::ifstream file;
+        std::ifstream file ;
         WavHeader header{};
     };
 
@@ -99,7 +103,7 @@ namespace audio_stream {
             return static_cast<bool>(file);
         }
 
-        IAudioOut &operator<<(uint16_t value) override {
+        IAudioOut &operator<<(IntSample value) override {
             file.write(reinterpret_cast<char*>(&value), sizeof(value));
             return *this;
         }
@@ -122,6 +126,35 @@ namespace audio_stream {
         uint32_t sample_rate;
         uint16_t depth;
     };
+
+    class WAVContext : public Context {
+    public:
+        explicit WAVContext (const std::string &main_input_path, const std::vector<std::string> &files): main_input(std::make_unique<WAVStreamInput>(main_input_path)) {
+            for (const auto &file: files) {
+                input_streams.emplace_back(std::make_unique<WAVStreamInput>(file));
+            }
+        }
+
+        IAudioIn &GetInputStreamByIndex(int index) override {
+            return *input_streams.at(index);
+        }
+
+        IAudioIn &GetMainInputStream() override {
+            return *main_input;
+        }
+
+        void SetMainInputStream(const std::string &main_input_path) override {
+            main_input = std::make_unique<WAVStreamInput>(main_input_path);
+        }
+
+        size_t GetNumOfStreams() override {
+            return input_streams.size();
+        }
+    private:
+        std::unique_ptr<WAVStreamInput> main_input;
+        std::vector<std::unique_ptr<IAudioIn>> input_streams;
+    };
+
 }
 
 

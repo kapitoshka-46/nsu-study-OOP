@@ -5,21 +5,21 @@
 #include "../converters/mute/mute.h"
 #include "../converters/dummy/dummy.h"
 
-std::string filename_associated_with_var(std::string var);
 
-std::vector<std::string> get_associated_files(const std::vector<std::string>& file_numbers, const std::vector<std::string> & filenames) {
-    std::vector<std::string> result;
-    for (const auto &var : file_numbers) {
-        // TODO: may be just store numbers not $0 $1 ???
-        int number = std::stoi(var.substr(1));  // assume that var has format like $0 $1 etc..
-        try {
-            result.push_back(filenames.at(number));
+std::vector<int> get_streams_indeces(std::vector<std::string> streams) {
+    std::vector<int> res;
+
+    for (const auto &stream : streams) {
+        if (stream.empty()) {
+            continue;
         }
-        catch (std::out_of_range &ex) {
-            throw;
+        if (stream[0] != '$' or stream.length() <= 1) {
+            throw std::invalid_argument("invalid stream. should be `$Z`, where Z -- number");
         }
+        int stream_index = std::stoi(stream.substr(1));
+        res.push_back(stream_index);
     }
-    return result;
+    return res;
 }
 
 converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & input_files)
@@ -36,6 +36,7 @@ converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & i
             else if (size == 2) {
                 auto start = params.time_stamps[0];
                 auto end = params.time_stamps[1];
+
                 return std::make_unique<Mute>(start, end);
             }
             else  {
@@ -45,26 +46,27 @@ converter::ConverterFactory::ConverterFactory(std::vector<std::string> const & i
 
     RegisterConverter(
         "mix",
-        [&input_files](Params params) -> std::unique_ptr<IConverter> { // FIXME don't like capture list ...
-            std::vector<std::string> filenames = get_associated_files(params.streams, input_files);
+        [](Params params) -> std::unique_ptr<IConverter> { // FIXME don't like capture list ...
             if (params.streams.empty()) {
                 throw std::runtime_error("Need at least 1 stream for mix");
             }
 
+            std::vector<int> vars = get_streams_indeces(params.streams);
+
             auto num_timestamps = params.time_stamps.size();
             if (num_timestamps == 0) {
-                return std::make_unique<Mix>(filenames);
+                return std::make_unique<Mix>(vars);
             }
 
             if (num_timestamps == 1) {
                 auto start = params.time_stamps[0];
-                return std::make_unique<Mix>(filenames, start);
+                return std::make_unique<Mix>(vars, start);
             }
 
             if (num_timestamps == 2) {
                 auto start = params.time_stamps[0];
                 auto end = params.time_stamps[1];
-                return std::make_unique<Mix>(filenames, start, end);
+                return std::make_unique<Mix>(vars, start, end);
             }
             throw std::logic_error("Too many timestamps: " + std::to_string(num_timestamps));
         }

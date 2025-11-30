@@ -4,7 +4,6 @@
 
 #include "../i_converter.h"
 
-
 namespace converter {
 
     class Mute : public IConverter {
@@ -12,14 +11,14 @@ namespace converter {
     public:
         explicit Mute(Seconds start);
         explicit Mute(Seconds start, Seconds end);
-        void Apply(IAudioIn &input, IAudioOut & output) override;
+        void Apply(audio_stream::Context & input_ctx, IAudioOut & output) override;
 
         [[nodiscard]] std::string GetName() const override {return "mute";}
 
         [[nodiscard]] HelpDescriptor GetHelpDescriptor() const override;
 
     private:
-        static constexpr int Unset = -1;
+        static constexpr int Unset = std::numeric_limits<Seconds>::max();
 
         int start_seconds = Unset;
         int end_seconds = Unset;
