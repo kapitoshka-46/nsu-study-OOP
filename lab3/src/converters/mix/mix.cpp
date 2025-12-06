@@ -39,10 +39,19 @@ end_seconds(end) {
 
 
 IntSample mix_samples(const std::vector<IntSample> &samples) {
-    IntSample result = 0;
+    int32_t result = 0;
     int n = samples.size();
     for (IntSample sample : samples) {
+
         result += static_cast<IntSample>(sample / n);
+        constexpr int max = std::numeric_limits<IntSample>::max();
+        constexpr int min = std::numeric_limits<IntSample>::min();
+        if (result >= max) {
+            result = max;
+        }
+        if (result <= min) {
+            result = min;
+        }
     }
     return result;
 }

@@ -10,8 +10,6 @@
 
 namespace audio_stream {
 
-
-
     struct BaseChunk {
         union {
             int8_t chunk_id[4];     // careful. it is not a null-terminated C string! -- do not do `reinterpret_cast<char*>(&chunk_id) !!!!!!!`
@@ -79,7 +77,9 @@ namespace audio_stream {
 
         void Seek(size_t num_of_samples, std::ios_base::seekdir dir) override {
             file.seekg(num_of_samples * header.fmt_chunk.bits_per_sample, dir);
-        };
+        }
+
+        void FlushBufferAndResetIter(); TODO
 
         uint32_t GetSampleRate() const override {return header.fmt_chunk.sample_rate;}
 
@@ -89,6 +89,8 @@ namespace audio_stream {
     private:
         std::ifstream file ;
         WavHeader header{};
+        std::size_t iter;
+        std::array<IntSample, 44100> buffer {};
     };
 
     class WAVStreamOutput : public IAudioOut {
@@ -104,15 +106,21 @@ namespace audio_stream {
         }
 
         IAudioOut &operator<<(IntSample value) override {
-            file.write(reinterpret_cast<char*>(&value), sizeof(value));
+            //file.write(reinterpret_cast<char*>(&value), sizeof(value));
+            if (iter >= buffer.size()) {
+                FlushBufferAndResetIter();
+            }
+            buffer[iter++] = value;
             return *this;
         }
 
         void Seek(size_t num_of_samples, std::ios_base::seekdir dir) override {
+            FlushBufferAndResetIter();
             file.seekp(num_of_samples * depth / 8, dir);
         }
 
         void Skip(size_t num_of_samples) override {
+            FlushBufferAndResetIter();
             file.seekp(num_of_samples * depth / 8, std::ios::cur);
         }
 
@@ -125,6 +133,13 @@ namespace audio_stream {
         std::ofstream file;
         uint32_t sample_rate;
         uint16_t depth;
+        std::array<IntSample, 44100> buffer{};
+        size_t iter = 0;
+
+        void FlushBufferAndResetIter() {
+            file.write(reinterpret_cast<const char *>(buffer.data()), iter * sizeof(buffer[0]));
+            iter = 0;
+        }
     };
 
     class WAVContext : public Context {
@@ -156,8 +171,5 @@ namespace audio_stream {
     };
 
 }
-
-
-
 
 #endif //WAV_STREAM_H

@@ -133,8 +133,10 @@ void WAVStreamInput::Rewind() {
     file.seekg(sizeof(WavHeader), std::ios::beg);
 }
 
-WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth) : file(
-        ouput_filename, std::ios::binary), sample_rate(sample_rate), depth(depth) {
+WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth)
+: file(ouput_filename, std::ios::binary),
+sample_rate(sample_rate),
+depth(depth) {
     // a lot of specific file format code !!
     // works with mono wav
     if (depth % 8 != 0) { throw std::invalid_argument("depth is not divides by 8:" + std::to_string(depth)); }
@@ -167,6 +169,7 @@ WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sam
 }
 
 WAVStreamOutput::~WAVStreamOutput() {
+    FlushBufferAndResetIter();
     file.close();
 }
 

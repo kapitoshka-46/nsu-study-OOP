@@ -17,7 +17,6 @@ add_executable(sound_processor src/main.cpp
         src/cfg-parser/point.h
 
         src/terminal/color.h
-        src/converters/i_converter.cpp
         src/converters/i_converter.h
 
         src/converters/mix/mix.cpp
