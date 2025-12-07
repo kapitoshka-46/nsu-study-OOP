@@ -4,9 +4,33 @@
 #include <iostream>
 #include <limits>
 
-using audio_stream::IntSample;
+#include "../../converters-factory/converter_factory.h"
 
-void print_input_sources(std::vector<int> &vec) {
+
+using audio_stream::IntSample;
+using namespace converter;
+
+static AutoRegisterConverter r{"mix", std::make_shared<MixCreator>()};
+
+
+// extracts the number from var.  [$1, $2, ..., $n] -> [1, 2, ..., n]:
+static std::vector<int> get_streams_indexes(const std::vector<std::string>& streams) {
+    std::vector<int> res;
+
+    for (const auto &stream : streams) {
+        if (stream.empty()) {
+            continue;
+        }
+        if (stream[0] != '$' or stream.length() <= 1) {
+            throw std::invalid_argument("invalid stream. should be `$Z`, where Z -- number");
+        }
+        int stream_index = std::stoi(stream.substr(1));
+        res.push_back(stream_index);
+    }
+    return res;
+}
+
+static void print_input_sources(std::vector<int> &vec) {
     std::cout << color::bold << color::bright_magenta << "files for mixing:\n" << color::reset;
     std::cout << color::magenta;
     for (auto x: vec) {
@@ -16,18 +40,18 @@ void print_input_sources(std::vector<int> &vec) {
     std::cout << "\n";
 }
 
-converter::Mix::Mix(std::vector<int> others) : others(others) {
+Mix::Mix(std::vector<int> others) : others(others) {
     print_input_sources(others);
     std::cout << "const: mix for others\n";
 }
 
-converter::Mix::Mix(std::vector<int> others, Seconds start) : start_seconds(start), others(others) {
+Mix::Mix(std::vector<int> others, Seconds start) : start_seconds(start), others(others) {
     if (start < 0) {throw std::invalid_argument("mix: start cannot be < 0");}
     print_input_sources(others);
     std::cout << "const: mix for others from " << start << " to end\n";
 }
 
-converter::Mix::Mix(std::vector<int> others, Seconds start, Seconds end)
+Mix::Mix(std::vector<int> others, Seconds start, Seconds end)
 : others(others),
 start_seconds(start),
 end_seconds(end) {
@@ -53,10 +77,10 @@ IntSample mix_samples(const std::vector<IntSample> &samples) {
             result = min;
         }
     }
-    return result;
+    return static_cast<int16_t>(result);
 }
 
-void converter::Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output) {
+void Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output) {
 
     IAudioIn &input = input_ctx.GetMainInputStream();
 
@@ -85,9 +109,39 @@ void converter::Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output)
 
 }
 
-converter::HelpDescriptor converter::Mix::GetHelpDescriptor() const {
-    return HelpDescriptor{"Mix source into stream from start",
-    {"source", "start=0"},
-    {"mix $2 50", "mix $1"}
+
+std::unique_ptr<IConverter> MixCreator::Create(Params params) const {
+
+    if (params.streams.empty()) {
+        throw std::runtime_error("Need at least 1 stream for mix");
+    }
+
+    std::vector<int> vars = get_streams_indexes(params.streams);
+
+    auto num_timestamps = params.time_stamps.size();
+    if (num_timestamps == 0) {
+        return std::make_unique<Mix>(vars);
+    }
+
+    if (num_timestamps == 1) {
+        auto start = params.time_stamps[0];
+        return std::make_unique<Mix>(vars, start);
+    }
+
+    if (num_timestamps == 2) {
+        auto start = params.time_stamps[0];
+        auto end = params.time_stamps[1];
+        return std::make_unique<Mix>(vars, start, end);
+    }
+    throw std::logic_error("Too many timestamps: " + std::to_string(num_timestamps));
+}
+
+HelpDescriptor MixCreator::GetHelpDescriptor() const {
+    return HelpDescriptor{
+        "mix source into stream from start to end",
+        {"source", "start", "end"},
+        {"mix $2 50", "mix $1"}
     };
 }
+
+std::string MixCreator::GetName() const { return "mix";}

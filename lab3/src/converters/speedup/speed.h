@@ -1,20 +1,22 @@
-#ifndef MUTE_H
-#define MUTE_H
-#include <iostream>
+#ifndef SPEED_UP_H
+#define SPEED_UP_H
+
 
 #include "../i_converter.h"
 #include "../../converters-factory/converter_factory.h"
 
 namespace converter {
 
-    class Mute : public IConverter {
+    class Speed : public IConverter {
 
     public:
-        explicit Mute(Seconds start);
-        explicit Mute(Seconds start, Seconds end);
-        void Apply(audio_stream::Context & input_ctx, IAudioOut & output) override;
+        explicit Speed(Seconds start);
 
-        const std::string GetName() override {return "mute";}
+        explicit Speed(Seconds start, Seconds end);
+
+        const std::string GetName() override {return "speed";}
+
+        void Apply(audio_stream::Context & input_ctx, IAudioOut & output) override;
 
     private:
         static constexpr int Unset = std::numeric_limits<Seconds>::max();
@@ -23,7 +25,7 @@ namespace converter {
         int end_seconds = Unset;
     };
 
-    class MuteCreator final : public IConverterCreator {
+    class SpeedCreator final : public IConverterCreator {
     public:
         std::unique_ptr<IConverter> Create(Params params) const override;
 
@@ -37,5 +39,4 @@ namespace converter {
 
 
 
-
-#endif //MUTE_H
+#endif //SPEED_UP_H

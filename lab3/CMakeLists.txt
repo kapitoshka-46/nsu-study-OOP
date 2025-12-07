@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 project(lab3)
 
 set(CMAKE_CXX_STANDARD 20)
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 add_executable(sound_processor src/main.cpp
 
@@ -27,11 +28,24 @@ add_executable(sound_processor src/main.cpp
 
         src/converters-factory/converter_factory.cpp
         src/converters-factory/converter_factory.h
+
         src/sample-stream/ISampleStream.h
+
         src/sample-stream/wav/wav_stream.cpp
         src/sample-stream/wav/wav_stream.h
+
         src/sound-processor/sound_processor.cpp
         src/sound-processor/sound_processor.h
+
         src/converters/dummy/dummy.cpp
         src/converters/dummy/dummy.h
+
+        src/converters/speedup/speed.cpp
+        src/converters/speedup/speed.h
+        src/converters/slow/slow.cpp
+        src/converters/slow/slow.h
+        src/cmd-options/cmd_parser.cpp
+        src/cmd-options/cmd_parser.h
 )
+target_link_libraries(sound_processor PUBLIC Boost::program_options)
+target_include_directories(sound_processor PUBLIC src ${Boost_INCLUDE_DIR})

@@ -16,8 +16,8 @@ namespace converter {
     using TimeStamps = std::vector<Seconds>;   // 20, 10, 0, ...
 
     struct Params {
-        Vars streams;
-        TimeStamps time_stamps;
+        std::vector<std::string> streams;
+        std::vector<Seconds> time_stamps;
     };
 
     struct HelpDescriptor {
@@ -26,17 +26,26 @@ namespace converter {
         std::vector<std::string> examples;
     };
 
+
     class IConverter {
     public:
         virtual ~IConverter() = default;
+        virtual const std::string GetName() = 0;
         virtual void Apply(audio_stream::Context & input, IAudioOut &output) = 0;
-
-        [[nodiscard]] virtual std::string GetName() const = 0;
-
-        [[nodiscard]] virtual HelpDescriptor GetHelpDescriptor() const = 0;
-
     };
 
+
+    class IConverterCreator {
+    public:
+        virtual ~IConverterCreator() = default;
+
+        virtual std::unique_ptr<IConverter> Create(Params params) const = 0;
+
+        virtual HelpDescriptor GetHelpDescriptor() const = 0;
+
+        virtual std::string GetName() const = 0;
+    private:
+    };
 }
 
 

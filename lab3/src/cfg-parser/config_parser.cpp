@@ -23,7 +23,7 @@ std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const s
     std::vector<NameLineParams> converters_and_params = GetNamesAndParams(filename);
 
     PointersToConverters ptrs;
-    ConverterFactory factory {input_files};
+    ConverterFactory factory {};
     for (const auto &[name, line, params] : converters_and_params) {
         ptrs.push_back(std::move(factory.CreateConverter(name, line, params)));
     }

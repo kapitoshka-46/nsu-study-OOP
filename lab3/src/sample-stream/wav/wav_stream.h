@@ -79,7 +79,7 @@ namespace audio_stream {
             file.seekg(num_of_samples * header.fmt_chunk.bits_per_sample, dir);
         }
 
-        void FlushBufferAndResetIter(); TODO
+        void FlushBufferAndResetIter();
 
         uint32_t GetSampleRate() const override {return header.fmt_chunk.sample_rate;}
 
