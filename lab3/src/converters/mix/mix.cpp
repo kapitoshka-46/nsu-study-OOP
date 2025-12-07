@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <limits>
+#include <utility>
 
 #include "../../converters-factory/converter_factory.h"
 
@@ -31,40 +32,35 @@ static std::vector<int> get_streams_indexes(const std::vector<std::string>& stre
 }
 
 static void print_input_sources(std::vector<int> &vec) {
-    std::cout << color::bold << color::bright_magenta << "files for mixing:\n" << color::reset;
-    std::cout << color::magenta;
-    for (auto x: vec) {
-        std::cout << "\t" << x << "\n";
+    if (vec.size() >= 1) {
+        std::cout << "$" << vec[0];
     }
-    std::cout << color::reset;
-    std::cout << "\n";
+    for (int i = 1; i < vec.size(); i++) {
+        std::cout << " $" << vec[i];
+    }
+
+    std::cout <<'\n';
+
 }
 
-Mix::Mix(std::vector<int> others) : others(others) {
-    print_input_sources(others);
-    std::cout << "const: mix for others\n";
-}
+Mix::Mix(std::vector<int> others) : others(std::move(others)) {}
 
-Mix::Mix(std::vector<int> others, Seconds start) : start_seconds(start), others(others) {
+Mix::Mix(std::vector<int> others, Seconds start) : start_seconds(start), others(std::move(others)) {
     if (start < 0) {throw std::invalid_argument("mix: start cannot be < 0");}
-    print_input_sources(others);
-    std::cout << "const: mix for others from " << start << " to end\n";
 }
 
 Mix::Mix(std::vector<int> others, Seconds start, Seconds end)
-: others(others),
+: others(std::move(others)),
 start_seconds(start),
 end_seconds(end) {
     if (start < 0) {throw std::invalid_argument("mix: start cannot be < 0");}
     if (end < start) {throw std::invalid_argument("mix: end cannot be < start");}
-    print_input_sources(others);
-    std::cout << "const: mix for others from " << start << " to " << end << "\n";
 }
 
 
 IntSample mix_samples(const std::vector<IntSample> &samples) {
     int32_t result = 0;
-    int n = samples.size();
+    auto n = samples.size();
     for (IntSample sample : samples) {
 
         result += static_cast<IntSample>(sample / n);
@@ -81,7 +77,7 @@ IntSample mix_samples(const std::vector<IntSample> &samples) {
 }
 
 void Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output) {
-
+    std::cout << "Mixing with: "; print_input_sources(others);
     IAudioIn &input = input_ctx.GetMainInputStream();
 
     const uint32_t start_sample = start_seconds * input.GetSampleRate();
@@ -90,7 +86,6 @@ void Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output) {
         end_sample = Unset;
     }
 
-    std::cout << "apply: mix \n";
     IntSample sample;
     std::vector<IntSample> all_samples;
     for (auto cnt = start_sample; input >> sample; cnt++) {

@@ -7,12 +7,11 @@ using namespace converter;
 AutoRegisterConverter<Mute> r {"mute", std::make_shared<MuteCreator>()};
 
 Mute::Mute(Seconds start) : start_seconds(start) {
-    if (start < Seconds(0)) {
+    if (start < Seconds{0}) {
         std::ostringstream iss;
         iss << "Invalid start timestamp: " << start;
         throw std::invalid_argument(iss.str());
     }
-    std::cout << "const: mute from " << start << " to end" << "\n";
 }
 
 Mute::Mute(Seconds start, Seconds end) : start_seconds(start), end_seconds(end) {
@@ -32,7 +31,6 @@ Mute::Mute(Seconds start, Seconds end) : start_seconds(start), end_seconds(end) 
         throw std::invalid_argument("end < start");
     }
 
-    std::cout << "const: mute from " << start << " to " << end << "\n";
 }
 
 void Mute::Apply(audio_stream::Context & input_ctx, IAudioOut & output) {

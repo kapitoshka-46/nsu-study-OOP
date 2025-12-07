@@ -1,22 +1,25 @@
 #ifndef SOUND_PROCESSOR_H
 #define SOUND_PROCESSOR_H
-#include <string>
+#include <filesystem>
 #include <vector>
 #include "../cfg-parser/config_parser.h"
-#include "../converters-factory/converter_factory.h"
+#include "../cmd-options/cmd_parser.h"
+
 
 namespace sound_processor {
+    namespace  fs = std::filesystem;
 
     class SoundProcessor {
 
     public:
-        SoundProcessor(const std::string& config, const std::vector<std::string>& files);
-
-        void RunPipeline() const;
-
+        SoundProcessor(int argc,char **argv);
+        void RunPipeline();
     private:
-        const std::vector<std::string> &input_files;
-        cfg::PointersToConverters converters_;
+        const opt::Options options_;
+        cfg::PointersToConverters converters_{};
+        int total_actions;
+
+        void print_info(const std::string &msg) const;
     };
 
 

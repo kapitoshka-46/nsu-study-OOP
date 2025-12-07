@@ -1,63 +1,68 @@
+#include <filesystem>
+
 #include "sound_processor.h"
 #include "../sample-stream/wav/wav_stream.h"
 #include "../terminal/color.h"
-#include <filesystem>
+#include "../cmd-options/cmd_parser.h"
 
 namespace fs = std::filesystem;
 using namespace audio_stream;
 namespace sound_processor {
 
-
-
-    SoundProcessor::SoundProcessor(const std::string& config, const std::vector<std::string>& files)
-        // get ptrs to all converters that we need in config file
-        : input_files(files),
-        // store files for opening them later
-        converters_(cfg::Parser::GetConvertersFromConfig(config, files))
-    {}
-
-    void SoundProcessor::RunPipeline() const {
-        if (input_files.empty()) {return;}
-
-        const std::string work_dir = "tmp";
-
-        // use tmp directory. remember to move out.wav from it and delete!
-        // TODO: use tmp_dir from filesystem library
-        // warning! user can have their own dir named `tmp`. and program just delete it, lol
+    // use tmp directory. remember to move out.wav from it and delete!
+    // TODO: use tmp_dir from filesystem library
+    // warning! user can have their own dir named `tmp`. and program just delete it, lol
+    fs::path prepare_tmp_dir() {
+        fs::path work_dir {".temp-sound-processor"};
         fs::remove_all(work_dir);
         fs::create_directory(work_dir);
-        fs::path input_path = work_dir + "/" + fs::path(input_files[0]).replace_filename("first.wav").filename().string();
-        fs::path output_path = work_dir + "/" + "second.wav";
+        return work_dir;
+    }
 
-        fs::copy(input_files[0], input_path, fs::copy_options::update_existing);
+    void save_file_and_create_dirs_if_need(const fs::path & src, const fs::path &dst) {
+        fs::create_directories(fs::path(dst).remove_filename());
+        fs::copy(src, dst, fs::copy_options::update_existing); // FIXME: обрабатывать случай, если файл уже есть
+        std::cout << "Saving file in: " << dst << std::endl;
 
+    }
 
-        WAVContext ctx {input_path, input_files};
+    SoundProcessor::SoundProcessor(int argc, char **argv) :options_(argc, argv) {
+        converters_ = cfg::Parser::GetConvertersFromConfig(options_.GetConfigurationFilename());
+        total_actions = converters_.size() + 2; // + saving results + creating converters
+        print_info("Setup configuration");
 
-        // file1 -> converter1 -> file2 -> converter2 -> file1 -> ... ->
+    }
+
+    void SoundProcessor::RunPipeline() {
+        const std::vector<fs::path> &in_files = options_.GetInputFileNames();
+        const fs::path &result = options_.GetOutputFilename();
+        if (in_files.empty()) {return;}
+
+        fs::path work_dir = prepare_tmp_dir();
+        auto tmp_in = fs::path(work_dir).concat("/input.wav");
+        auto tmp_out = fs::path{work_dir}.concat("/output.wav");
+        fs::copy(in_files[0], tmp_in, fs::copy_options::update_existing);
+
+        WAVContext ctx {tmp_in, in_files};
         for (auto &converter : converters_) {
-            WAVStreamOutput audio_out {output_path, 44100, 16};
+            print_info("Applying " + converter->GetName());
 
-            std::cout << color::bold << color::blue <<":: Applying " << converter->GetName() << color::reset <<std::endl;
-            std::cout << color::bold << color::green << input_path.filename() << color::reset << " --> " << color::green <<
-                    output_path.filename() << color::reset << std::endl;
+            WAVStreamOutput audio_out {tmp_out, 44100, 16};
             converter->Apply(ctx, audio_out);
 
-            std::swap(input_path, output_path); //
-            ctx.SetMainInputStream(input_path); // set to swapped file
+            std::swap(tmp_in, tmp_out);
+            ctx.SetMainInputStream(tmp_in); // set to swapped file
         }
-        std::cout << color::bold << color::blue <<":: Saving results" << color::reset << std::endl;
+        std::swap(tmp_in, tmp_out);   // because we swapped input and output in the end of cycle
 
-        std::swap(input_path, output_path);   // because we swapped input <-> output in the end of for-cycle
+        print_info("Saving results");
+        save_file_and_create_dirs_if_need(tmp_out, result);
 
-        fs::path result {output_path};
-        result.replace_filename("result.wav");
+    }
 
-        std::cout << color::green << output_path.filename() << color::reset << " ==> "
-                  << color::green << result.filename() << color::reset << std::endl;
-
-        fs::copy(output_path, result, fs::copy_options::update_existing); // TODO: обрабатывать случай, если файл уже есть
-        std::cout << "Result is wrote to: " << color::bold << result << std::endl;
-
+    void SoundProcessor::print_info(const std::string &msg) const {
+        static int count = 0;
+        std::cout << color::bold << color::blue << ":: " << msg << color::reset <<
+                color::gray << " ("<< ++count << "/" << total_actions <<  ")" << color::reset << std::endl;
     }
 }

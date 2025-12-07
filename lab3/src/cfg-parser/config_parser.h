@@ -6,6 +6,7 @@
 #include "token.h"
 #include "../converters/i_converter.h"
 #include "../converters-factory/converter_factory.h"
+#include <filesystem>
 namespace cfg {
 
 
@@ -17,7 +18,7 @@ namespace cfg {
     // name: "time", text: "30"
     class Parser {
     public:
-        static PointersToConverters GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files);
+        static PointersToConverters GetConvertersFromConfig(const std::string &filename /*, input_files for checking streams ?*/);
     };
 
 } // cfg

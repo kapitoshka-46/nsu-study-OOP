@@ -40,10 +40,12 @@ add_executable(sound_processor src/main.cpp
         src/converters/dummy/dummy.cpp
         src/converters/dummy/dummy.h
 
-        src/converters/speedup/speed.cpp
-        src/converters/speedup/speed.h
+        src/converters/speed/speed.cpp
+        src/converters/speed/speed.h
+
         src/converters/slow/slow.cpp
         src/converters/slow/slow.h
+
         src/cmd-options/cmd_parser.cpp
         src/cmd-options/cmd_parser.h
 )

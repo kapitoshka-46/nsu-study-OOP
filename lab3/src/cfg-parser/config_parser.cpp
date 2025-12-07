@@ -9,6 +9,7 @@
 #include "point.h"
 #include "../terminal/color.h"
 #include "../converters-factory/converter_factory.h"
+#include <filesystem>
 
 using namespace cfg;
 using namespace converter;
@@ -18,7 +19,7 @@ std::vector<NameLineParams> GetNamesAndParams(const std::string &filename);
 void print_str_and_params(std::vector<NameLineParams> x);
 void print_tokens(const std::vector<Token> &vec);
 
-std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const std::string &filename, const std::vector<std::string> &input_files) {
+std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const std::string &filename) {
 
     std::vector<NameLineParams> converters_and_params = GetNamesAndParams(filename);
 

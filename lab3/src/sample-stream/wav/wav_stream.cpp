@@ -119,6 +119,8 @@ WAVStreamInput::WAVStreamInput(const std::string& input_filename) {
     if (!is_found_data) {
         throw std::invalid_argument("Cannot find audio. Corrupted file :\\");
     }
+    ReadBufferAndResetIter();
+
 }
 
 WAVStreamInput::~WAVStreamInput() {
@@ -127,10 +129,12 @@ WAVStreamInput::~WAVStreamInput() {
 
 void WAVStreamInput::Skip(size_t num_of_samples) {
     file.seekg(num_of_samples * (GetDepth() / 8), std::ios::cur);
+    ReadBufferAndResetIter();
 }
 
 void WAVStreamInput::Rewind() {
     file.seekg(sizeof(WavHeader), std::ios::beg);
+    ReadBufferAndResetIter();
 }
 
 WAVStreamOutput::WAVStreamOutput(const std::string &ouput_filename, uint32_t sample_rate, uint16_t depth)
@@ -174,6 +178,7 @@ WAVStreamOutput::~WAVStreamOutput() {
 }
 
 void WAVStreamOutput::Rewind() {
+    FlushBufferAndResetIter();
     file.seekp(sizeof(WavHeader), std::ios::beg);
 }
 

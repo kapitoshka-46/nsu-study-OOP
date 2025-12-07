@@ -7,6 +7,7 @@
 #include <string>
 
 #include "../ISampleStream.h"
+#include <filesystem>
 
 namespace audio_stream {
 
@@ -67,9 +68,11 @@ namespace audio_stream {
             return static_cast<bool>(file);
         }
 
-
          IAudioIn &operator>>(IntSample &value) override {
-            file.read(reinterpret_cast<char*>(&value), sizeof(value));
+            if (iter >= buffer.size()) {
+                ReadBufferAndResetIter();
+            }
+            value = buffer[iter++];
             return *this;
         }
 
@@ -77,21 +80,26 @@ namespace audio_stream {
 
         void Seek(size_t num_of_samples, std::ios_base::seekdir dir) override {
             file.seekg(num_of_samples * header.fmt_chunk.bits_per_sample, dir);
+            ReadBufferAndResetIter();
         }
-
-        void FlushBufferAndResetIter();
 
         uint32_t GetSampleRate() const override {return header.fmt_chunk.sample_rate;}
 
         uint16_t GetDepth() const override {return header.fmt_chunk.bits_per_sample;}
 
+        void ReadBufferAndResetIter() {
+            file.read(reinterpret_cast<char *>(buffer.data()), iter * sizeof(buffer[0]));
+            iter = 0;
+        }
+
         void Rewind() override;
     private:
         std::ifstream file ;
         WavHeader header{};
-        std::size_t iter;
+        std::size_t iter {};
         std::array<IntSample, 44100> buffer {};
     };
+
 
     class WAVStreamOutput : public IAudioOut {
     public:
@@ -106,7 +114,6 @@ namespace audio_stream {
         }
 
         IAudioOut &operator<<(IntSample value) override {
-            //file.write(reinterpret_cast<char*>(&value), sizeof(value));
             if (iter >= buffer.size()) {
                 FlushBufferAndResetIter();
             }
@@ -115,11 +122,13 @@ namespace audio_stream {
         }
 
         void Seek(size_t num_of_samples, std::ios_base::seekdir dir) override {
+            // TODO: use buffer to!
             FlushBufferAndResetIter();
             file.seekp(num_of_samples * depth / 8, dir);
         }
 
         void Skip(size_t num_of_samples) override {
+            // TODO: use buffer to! (optimize skips < buffer_size)
             FlushBufferAndResetIter();
             file.seekp(num_of_samples * depth / 8, std::ios::cur);
         }
@@ -144,13 +153,19 @@ namespace audio_stream {
 
     class WAVContext : public Context {
     public:
-        explicit WAVContext (const std::string &main_input_path, const std::vector<std::string> &files): main_input(std::make_unique<WAVStreamInput>(main_input_path)) {
+        explicit WAVContext (const std::string &main_input_path, const std::vector<std::filesystem::path> &files): main_input(std::make_unique<WAVStreamInput>(main_input_path)) {
             for (const auto &file: files) {
                 input_streams.emplace_back(std::make_unique<WAVStreamInput>(file));
             }
         }
 
         IAudioIn &GetInputStreamByIndex(int index) override {
+            if (index < 0) {
+                throw std::out_of_range("Invalid file number (< 0): " + std::to_string(index));
+            }
+            if (index >= input_streams.size()) {
+                throw std::out_of_range("Invalid file number: " + std::to_string(index) + ". Max is: " + std::to_string(input_streams.size() - 1));
+            }
             return *input_streams.at(index);
         }
 
