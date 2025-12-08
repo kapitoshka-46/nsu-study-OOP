@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.31)
-project(lab0b)
+project(csv-parser)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 26)
 
-add_executable(lab0b main.cpp
+add_executable(csv-parser main.cpp
         tuple_extension.h)
