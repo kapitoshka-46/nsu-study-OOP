@@ -1,6 +1,5 @@
 #ifndef SOUND_PROCESSOR_H
 #define SOUND_PROCESSOR_H
-#include <filesystem>
 #include <vector>
 #include "../cfg-parser/config_parser.h"
 #include "../cmd-options/cmd_parser.h"
@@ -18,6 +17,7 @@ namespace sound_processor {
         const opt::Options options_;
         cfg::PointersToConverters converters_{};
         int total_actions;
+        bool is_running = true;
 
         void print_info(const std::string &msg) const;
     };

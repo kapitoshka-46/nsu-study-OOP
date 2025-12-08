@@ -13,7 +13,6 @@ Slow::Slow(Seconds start) : start_seconds(start) {
         iss << "Invalid start timestamp: " << start;
         throw std::invalid_argument(iss.str());
     }
-    std::cout << "const: slow (x0.5) from " << start << " to end" << "\n";
 }
 
 Slow::Slow(Seconds start, Seconds end) : start_seconds(start), end_seconds(end) {

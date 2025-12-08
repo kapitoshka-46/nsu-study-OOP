@@ -65,7 +65,7 @@ namespace audio_stream {
         ~WAVStreamInput() override;
 
         explicit operator bool() const override {
-            return static_cast<bool>(file);
+            return file.good() ;//and iter <= file.gcount();
         }
 
          IAudioIn &operator>>(IntSample &value) override {

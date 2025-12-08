@@ -24,12 +24,10 @@ std::vector<std::unique_ptr<IConverter>> Parser::GetConvertersFromConfig(const s
     std::vector<NameLineParams> converters_and_params = GetNamesAndParams(filename);
 
     PointersToConverters ptrs;
-    ConverterFactory factory {};
     for (const auto &[name, line, params] : converters_and_params) {
-        ptrs.push_back(std::move(factory.CreateConverter(name, line, params)));
+        ptrs.emplace_back(ConverterFactory::CreateConverter(name, line, params));
     }
 
-    // debug prints
     print_str_and_params(converters_and_params);
     return ptrs;
 }
@@ -82,8 +80,8 @@ std::vector<NameLineParams> GetNamesAndParams(const std::string &filename) {
 }
 
 void print_str_and_params(std::vector<NameLineParams> x) {
-    for (const auto& triple : x) {
-        auto [name, pos, params] = triple;
+    // for (const auto& triple : x) {
+    //     auto [name, pos, params] = triple;
         // std::cout << color::bold << "name: " << color::reset <<  name << "\n\t";
         // std::cout << color::bold << "line : " << color::reset << pos << "\n\t";
         // std::cout << color::bold << "params: " << color::reset;
@@ -94,11 +92,11 @@ void print_str_and_params(std::vector<NameLineParams> x) {
         //     std::cout << timestamp << " ";
         // }
         //std::cout << "\n";
-    }
+    //}
 }
 
 void print_tokens(const std::vector<Token> &vec) {
-    for (auto const &t : vec) {
-        std::cout << t << '\n';
-    }
+    // for (auto const &t : vec) {
+    //     std::cout << t << '\n';
+    // }
 }

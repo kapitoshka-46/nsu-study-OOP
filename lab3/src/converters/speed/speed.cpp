@@ -12,7 +12,6 @@ Speed::Speed(Seconds start) : start_seconds(start) {
         iss << "Invalid start timestamp: " << start;
         throw std::invalid_argument(iss.str());
     }
-    std::cout << "const: mute from " << start << " to end" << "\n";
 }
 
 Speed::Speed(Seconds start, Seconds end) : start_seconds(start), end_seconds(end) {

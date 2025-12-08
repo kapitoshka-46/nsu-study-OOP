@@ -16,6 +16,7 @@ add_executable(sound_processor src/main.cpp
         src/cfg-parser/lexer.h
 
         src/cfg-parser/point.h
+        src/cfg-parser/exceptions.h
 
         src/terminal/color.h
         src/converters/i_converter.h

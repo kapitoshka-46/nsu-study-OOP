@@ -1,5 +1,4 @@
 #include "mix.h"
-#include "../../terminal/color.h"
 
 #include <iostream>
 #include <limits>
@@ -93,7 +92,9 @@ void Mix::Apply(audio_stream::Context & input_ctx, IAudioOut &output) {
             all_samples.push_back(sample);
             for (const int i : others) {
                 IntSample other;
-                input_ctx.GetInputStreamByIndex(i) >> other;
+                if (not input_ctx.GetInputStreamByIndex(i) >> other) {
+                    break;
+                }
                 all_samples.push_back(other);
             }
             sample = mix_samples(all_samples);

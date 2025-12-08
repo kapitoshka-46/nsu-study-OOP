@@ -4,17 +4,10 @@
 #include <iostream>
 #include <sstream>
 
+#include "exceptions.h"
 
 
 namespace cfg {
-    std::string repeat_char(int num, char c) {
-        std::string spaced;
-        spaced.reserve(num);
-        for (auto i = 0; i < num; i++) {
-            spaced.push_back(c);
-        }
-        return spaced;
-    }
 
     void Lexer::SkipSpaces() {
 
@@ -59,12 +52,7 @@ namespace cfg {
             }
             SkipSpaces();
         }
-        std::ostringstream oss;
-        oss << "Invalid expression at line " << pos_.y + 1 << ", symbol " << pos_.x + 1 << "\n";
-        oss << line.substr(0, pos_.x) << line.substr(pos_.x) << "\n";
-        oss << repeat_char(pos_.x + 1, ' ') << "^"  << "\n";
-
-        throw std::invalid_argument(oss.str());
+        throw InvalidExpressionError(line, pos_);
     }
 
     std::vector<Token> Lexer::GetTokensList() {

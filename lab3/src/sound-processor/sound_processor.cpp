@@ -27,6 +27,10 @@ namespace sound_processor {
     }
 
     SoundProcessor::SoundProcessor(int argc, char **argv) :options_(argc, argv) {
+        if (options_.PrintHelpIfRequired(std::cout)) {
+            is_running = false;
+            return;
+        }
         converters_ = cfg::Parser::GetConvertersFromConfig(options_.GetConfigurationFilename());
         total_actions = converters_.size() + 2; // + saving results + creating converters
         print_info("Setup configuration");
@@ -34,6 +38,9 @@ namespace sound_processor {
     }
 
     void SoundProcessor::RunPipeline() {
+        if (not is_running) {
+            return;
+        }
         const std::vector<fs::path> &in_files = options_.GetInputFileNames();
         const fs::path &result = options_.GetOutputFilename();
         if (in_files.empty()) {return;}
