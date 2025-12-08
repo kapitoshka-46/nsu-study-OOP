@@ -1,7 +1,5 @@
-
-*/.idea
-*/cmake-build-debug
-*/build
-*/.idea
-*/.vscode
-lab3/CMakeLists.txt.user
+**/.idea
+**/cmake-build-debug
+**/.vscode
+**/build
+**/*.user
