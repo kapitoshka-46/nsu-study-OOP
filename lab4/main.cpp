@@ -3,21 +3,30 @@
 #include <fstream>
 
 #include "csv_parser.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 using namespace std;
+
+void setup_logger() {
+    spdlog::set_pattern("[%^%l%$] %v");
+    spdlog::set_level(spdlog::level::debug); // Set *global* log level to debug
+
+    //auto logger = spdlog::basic_logger_mt("file_logger", "app.log");
+
+    // // Делаем его логгером по умолчанию (чтобы spdlog::info() писал в файл)
+    //spdlog::set_default_logger(logger);
+
+}
 int main() {
+    setup_logger();
     std::ifstream file("test.csv");
-    CSVParser<int, string> parser(file, 0 /*skip first lines count*/);
-    // for (tuple<int, string> rs : parser) {
-    //     cout<<rs<<endl; }
+    CSVParser<int, string, string> parser(file, ',', 0 /*skip first lines count*/);
 
     while (parser.Next()) {
         cout << parser.Value() << "\n";
     }
     cout << parser.Value() << endl;
     return 0;
-
-    // std::tuple<int, float, std::string> t {3, 2.5, "kek"};
-    // std::cout << t <<'\n';
 
 }
