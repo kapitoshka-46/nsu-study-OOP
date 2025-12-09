@@ -9,6 +9,8 @@
 
 #include "tuple_extension.h"
 
+
+
 template <typename ...Args>
 class CSVParser {
 public:
@@ -65,6 +67,7 @@ delimiter_(delimiter) {
 
 template <class CharT, class Traits>
 std::vector<std::basic_string<CharT, Traits>> parse_csv_line(std::basic_string<CharT, Traits> line, CharT delimiter, CharT quote) {
+    spdlog::debug("CSVParser: parse csv line: {}", line);
     using String = std::basic_string<CharT, Traits>;
     std::istringstream iss(line);
     // 1st, 2nd, 3rd, "4th, 4th", 5th, 6th
@@ -98,7 +101,7 @@ std::vector<std::basic_string<CharT, Traits>> parse_csv_line(std::basic_string<C
     return result;
 }
 
-template<typename ... Args>
+template<class ... Args>
 bool CSVParser<Args...>::Next() {
     spdlog::debug("CSVParser<Args...>::Next()");
 
@@ -110,15 +113,39 @@ bool CSVParser<Args...>::Next() {
     std::getline(stream_, line);
     const std::vector<std::string> fields = parse_csv_line(line, delimiter_, '"');
 
-
     value_ = make_tuple_from_csv_fields<char, std::char_traits<char>,Args...>(fields);
     return stream_.good();
 }
 
-template<typename ... Args>
+template<class ... Args>
 const std::tuple<Args...> & CSVParser<Args...>::Value() const {
     return value_;
 }
 
 
+struct CSVParserException : std::runtime_error {
+    explicit CSVParserException(const std::string &msg)
+    : std::runtime_error("CSVParser: " + msg) {};
+};
+
+struct InvalidFileException : CSVParserException {
+  explicit InvalidFileException(const std::string &file, const std::string &msg)
+      : CSVParserException("Error in file" + file + ": " + msg)
+    {}
+};
+
+struct ParseException : InvalidFileException {
+    explicit ParseException(
+        const std::string &file,
+        int row, int column,
+        const std::string &msg
+        )
+    : InvalidFileException(file, "at row " + std::to_string(row)
+                             + ", column " + std::to_string(column))
+{}
+};
+
+
 #endif //CSV_PARSER_H
+
+

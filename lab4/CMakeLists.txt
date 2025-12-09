@@ -9,6 +9,7 @@ find_package(fmt REQUIRED)
 add_executable(csv-parser main.cpp
         tuple_extension.h
         csv_parser.cpp
-        csv_parser.h)
+        csv_parser.h
+)
 
 target_link_libraries(csv-parser PRIVATE spdlog::spdlog fmt::fmt)
