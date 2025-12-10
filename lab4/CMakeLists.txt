@@ -12,4 +12,6 @@ add_executable(csv-parser main.cpp
         csv_parser.h
 )
 
-target_link_libraries(csv-parser PRIVATE spdlog::spdlog fmt::fmt)
+target_link_libraries(csv-parser PUBLIC spdlog::spdlog fmt::fmt)
+
+add_subdirectory(test)
