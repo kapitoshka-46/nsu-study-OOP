@@ -21,12 +21,17 @@ void setup_logger() {
 int main() {
     setup_logger();
     std::ifstream file("test.csv");
+
     CSVParser<int, string, string> parser(file, ',', 0 /*skip first lines count*/);
 
-    while (parser.Next()) {
-        cout << parser.Value() << "\n";
+    try {
+        while (parser.Next()) {
+            cout << parser.Value() << "\n";
+        }
+        cout << parser.Value() << endl;
+        return 0;
     }
-    cout << parser.Value() << endl;
-    return 0;
-
+    catch (std::exception &e) {
+        spdlog::critical(e.what());
+    }
 }

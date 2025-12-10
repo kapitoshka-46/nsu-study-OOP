@@ -6,9 +6,28 @@
 #include <sstream>
 #include <tuple>
 #include <spdlog/spdlog.h>
-
 #include "tuple_extension.h"
 
+// ------------------- Exceptions ----------------- //
+struct CSVParserException : std::runtime_error {
+    explicit CSVParserException(const std::string &msg)
+    : std::runtime_error("CSVParser: " + msg) {};
+};
+
+
+struct ParseException : CSVParserException {
+    explicit ParseException(
+        const std::string &line,
+        int row, int column,
+        const std::string &msg
+        )
+    : CSVParserException(
+    "error: " + msg + " at line " + std::to_string(row)
+    + ", symbol " + std::to_string(column) + "\n"
+    + line + "\n"
+    + std::string(column - 1, ' ') + "^")
+    {}
+};
 
 
 template <typename ...Args>
@@ -60,58 +79,106 @@ template<typename ... Args>
 CSVParser<Args...>::CSVParser(std::ifstream &file, char delimiter, int skip_lines)
     : stream_(file),
 delimiter_(delimiter) {
-    spdlog::debug("CSVParser constructor");
+    spdlog::debug("CSVParser: constructor");
     spdlog::info("Set delimiter: \"{}\"", delimiter_);
 }
 
+inline std::string read_quote_and_field_to_the_end(std::istream & is, char delimiter, char quote) {
+    std::string res;
+    std::getline(is, res, quote);
+    std::string other;
+    std::getline(is, other, delimiter);
+    res += other;
+    return res;
+}
 
-template <class CharT, class Traits>
-std::vector<std::basic_string<CharT, Traits>> parse_csv_line(std::basic_string<CharT, Traits> line, CharT delimiter, CharT quote) {
-    spdlog::debug("CSVParser: parse csv line: {}", line);
+
+template <class CharT=char, class Traits=std::char_traits<CharT>>
+std::vector<std::basic_string<CharT, Traits>>
+parse_csv_line(std::basic_istream<CharT, Traits> &is, CharT delimiter, CharT quote) {
+    static int count = 0;
+    count++;
+
     using String = std::basic_string<CharT, Traits>;
-    std::istringstream iss(line);
-    // 1st, 2nd, 3rd, "4th, 4th", 5th, 6th
-    String field;
+
     std::vector<String> result;
 
-    auto start = 0;
-    auto end = 0;
+    String line;
+    std::getline(is, line);
+    spdlog::debug("CSVParser: parse csv line: {}", line);
 
-    while (end < line.length() - 1) {
-        if (line.at(start) == quote) {
-            start++; // не хотим учиытвать кавычку
-            end = line.find(quote, start);
-            if (end == String::npos) {
-                throw std::runtime_error("CSV parser does not contain quote");
-            }
+    while (true) {
+        spdlog::debug("current line: {}", line);
+        auto quote_pos = line.find(quote);
+        auto delim_pos = line.find(delimiter);
+
+        if (delim_pos < quote_pos) {
+            result.push_back(line.substr(0, delim_pos));
+            line = line.substr(delim_pos + 1);
+            continue;
         }
-        else {
-            end = line.find(delimiter, start + 1);
-            if (end == String::npos) {
-                end = line.length();
+        if (quote_pos < delim_pos) {
+            auto end_quote = line.find(quote, quote_pos + 1);
+
+            if (end_quote == std::string::npos) {
+                auto prev_len = line.length();
+                String tmp;
+                std::getline(is, tmp, quote);
+                line += tmp;
+                std::getline(is, tmp, delimiter);
+                line += tmp;
+                spdlog::debug("fetching data until quote: {}", line.substr(prev_len));
+
+                // if quote_pos < delim_pos it means that field starts from line[0]
+                // and we need to push all data until another delimiter
+                // also we read line util delimiter -> just push line
+                result.push_back(line);
+                line.clear();
+                std::getline(is, line); // дочитываем до новой строки
+                continue;
             }
+
+            if (end_quote != std::string::npos) { //aaa " aaaa "   , other  (1)
+                                                  //aaa " aaaa ,  " hhjl, other  (2)
+                if (end_quote < delim_pos) { // (1)
+                    result.push_back(line.substr(0, delim_pos));
+                    line = line.substr(delim_pos + 1);
+                }
+                else {  // (2)
+                    delim_pos = line.find(delimiter, end_quote);
+                    if (delim_pos == std::string::npos) {
+                        result.push_back(line);
+                        line.clear();
+                        continue;
+                    }
+                    result.push_back(line.substr(0, delim_pos));
+                    line = line.substr(delim_pos + 1);
+                }
+                continue;
+            }
+
+
         }
-
-
-        result.push_back(line.substr(start, end - start));
-        start = end + 1;
+        if (quote_pos == delim_pos) {
+            assert(quote_pos == String::npos && delim_pos == String::npos);
+            // it is possible only if both of them == std::string::npos
+            result.push_back(line);
+            break;
+        }
     }
-
-
     return result;
 }
 
 template<class ... Args>
 bool CSVParser<Args...>::Next() {
-    spdlog::debug("CSVParser<Args...>::Next()");
+    spdlog::debug("CSVParser: Next()");
 
     if (!stream_) {
         return false;
     }
 
-    std::string line;
-    std::getline(stream_, line);
-    const std::vector<std::string> fields = parse_csv_line(line, delimiter_, '"');
+    std::vector<std::string> fields = parse_csv_line(stream_, delimiter_, '"');
+
 
     value_ = make_tuple_from_csv_fields<char, std::char_traits<char>,Args...>(fields);
     return stream_.good();
@@ -123,27 +190,7 @@ const std::tuple<Args...> & CSVParser<Args...>::Value() const {
 }
 
 
-struct CSVParserException : std::runtime_error {
-    explicit CSVParserException(const std::string &msg)
-    : std::runtime_error("CSVParser: " + msg) {};
-};
 
-struct InvalidFileException : CSVParserException {
-  explicit InvalidFileException(const std::string &file, const std::string &msg)
-      : CSVParserException("Error in file" + file + ": " + msg)
-    {}
-};
-
-struct ParseException : InvalidFileException {
-    explicit ParseException(
-        const std::string &file,
-        int row, int column,
-        const std::string &msg
-        )
-    : InvalidFileException(file, "at row " + std::to_string(row)
-                             + ", column " + std::to_string(column))
-{}
-};
 
 
 #endif //CSV_PARSER_H
