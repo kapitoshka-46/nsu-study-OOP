@@ -61,7 +61,7 @@ inline std::string from_string(const std::string &str) {
 
 template <class CharT, class Traits, class...Args>
 std::tuple<Args...>
-make_tuple_from_csv_fields(const std::vector<std::basic_string<CharT, Traits>> &fields) {
+make_tuple_from_strings(const std::vector<std::basic_string<CharT, Traits>> &fields) {
     std::tuple<Args...> t;
     // if fields.size != sizeof... Args
 

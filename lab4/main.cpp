@@ -25,13 +25,18 @@ int main() {
     CSVParser<int, string, string> parser(file, ',', 0 /*skip first lines count*/);
 
     try {
-        while (parser.Next()) {
-            cout << parser.Value() << "\n";
-        }
-        cout << parser.Value() << endl;
-        return 0;
+        // while (parser.Next()) {
+        //     cout << parser.Value() << "\n";
+        // }
+        string record = "aaa, before_\"quotestart\nnewline,commar , , commsas, , comas, , , cccc";
+        istringstream iss(record);
+        CSVParser<string, string, string> csv {iss};
+        tuple<string, string, string> expected = {"aaa", "before_quote", "ccc"};
+        csv.Next();
     }
     catch (std::exception &e) {
         spdlog::critical(e.what());
     }
+    return 0;
+
 }
