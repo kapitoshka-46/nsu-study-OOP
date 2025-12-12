@@ -7,7 +7,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 using namespace std;
-
+using TripleString = tuple<string,string, string>;
 void setup_logger() {
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::set_level(spdlog::level::debug); // Set *global* log level to debug
@@ -25,14 +25,14 @@ int main() {
     CSVParser<int, string, string> parser(file, ',', 0 /*skip first lines count*/);
 
     try {
-        // while (parser.Next()) {
-        //     cout << parser.Value() << "\n";
-        // }
-        string record = "aaa, before_\"quotestart\nnewline,commar , , commsas, , comas, , , cccc";
+        string record = "a,b,\"ccc,\n\n cc,\n c\ncc\"";
         istringstream iss(record);
         CSVParser<string, string, string> csv {iss};
-        tuple<string, string, string> expected = {"aaa", "before_quote", "ccc"};
-        csv.Next();
+
+        TripleString expected = {"a","b","ccc, cc, ccc"};
+        TripleString t;
+        csv >> t;
+
     }
     catch (std::exception &e) {
         spdlog::critical(e.what());

@@ -20,7 +20,7 @@ template <std::size_t I, typename...Args>
 struct tuple_printer {
     static void print(std::ostream &os, std::tuple<Args...> const &t) {
         tuple_printer<I-1, Args...>::print(os, t);  // firstly print previous argument
-        os << ", ";
+        os << " | ";
         print_elem(os, std::get<I>(t));
     }
 };

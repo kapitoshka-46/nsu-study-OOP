@@ -13,12 +13,12 @@ TEST(CSVParser, BasicParsing) {
 
     TripleString expected1 = {"aaa", "bbb", "ccc"};
     TripleString expected2 = {"zzz", "yyy", "xxx"};
+    TripleString t;
 
-    csv.Next();
-    ASSERT_EQ(csv.Value(), expected1);
-
-    csv.Next();
-    ASSERT_EQ(csv.Value(), expected2);
+    csv >> t;
+    ASSERT_EQ(t, expected1);
+    csv >> t;
+    ASSERT_EQ(t, expected2);
 }
 
 
@@ -27,20 +27,33 @@ TEST(CSVParser, CallNextMoreThenPossible) {
                      "zzz,yyy,xxx";
     istringstream iss(records);
     CSVParser<string, string, string> csv {iss};
+    TripleString t;
 
-    ASSERT_TRUE(csv.Next());
-    ASSERT_TRUE(csv.Next());
-
-    ASSERT_FALSE(csv.Next());
+    ASSERT_TRUE(csv.operator>>(t));
+    ASSERT_TRUE(csv.operator>>(t));
+    ASSERT_FALSE(csv.operator>>(t));
 }
 
-TEST(CSVParser, ValueWithoutNext) {
-    string records = "aaa,bbb,ccc\n";
-    istringstream iss(records);
+TEST(CSVParser, QuoteToTheEnd) {
+    string record = "a,b,\"ccc, cc, ccc\"";
+    istringstream iss(record);
     CSVParser<string, string, string> csv {iss};
 
-    TripleString expected = {};
-    ASSERT_EQ(csv.Value(), expected);   //TODO: а что в этом случае лучше делать?
+    TripleString expected = {"a","b","ccc, cc, ccc"};
+    TripleString t;
+    csv >> t;
+    ASSERT_EQ(t, expected);
+}
+
+TEST(CSVParser, QuoteNewLineEnd) {
+    string record = "a,b,\"ccc,\n\n cc,\n c\ncc\"";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+
+    TripleString expected = {"a","b","ccc,\n\n cc,\n c\ncc"};
+    TripleString t;
+    csv >> t;
+    ASSERT_EQ(t, expected);
 }
 
 TEST(CSVParser, OneRecordCRLF) {
@@ -48,8 +61,10 @@ TEST(CSVParser, OneRecordCRLF) {
     istringstream iss(record);
     CSVParser<string, string, string> csv {iss};
     TripleString expected = {"aaa", "bbb", "ccc"};
-    csv.Next();
-    ASSERT_EQ(csv.Value(), expected);
+
+    TripleString actual;
+    csv >> actual;
+    ASSERT_EQ(actual, expected);
 }
 
 TEST(CSVParser, OneRecordNoCRLF) {
@@ -57,8 +72,20 @@ TEST(CSVParser, OneRecordNoCRLF) {
     istringstream iss(record);
     CSVParser<string, string, string> csv {iss};
     TripleString expected = {"aaa", "bbb", "ccc"};
-    csv.Next();
-    ASSERT_EQ(csv.Value(), expected);
+
+    TripleString actual;
+    csv >> actual;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(CSVParser, CommaAfterQuote) {
+    string record ="aaa,\"bbb\",ccc";   // <-- no '\n'
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString expected = {"aaa", "bbb", "ccc"};
+    TripleString actual;
+    csv >> actual;
+    ASSERT_EQ(actual, expected);
 }
 
 TEST(CSVParser, QuotedCRLF) {
@@ -73,7 +100,8 @@ TEST(CSVParser, UnclosedQuoteNoCRLF) {
     istringstream iss(record);
     CSVParser<string, string, string> csv {iss};
     TripleString expected = {"aaa", "before_quote", "ccc"};
-    ASSERT_THROW(csv.Next(), CSVParserException);
+    TripleString t;
+    ASSERT_THROW(csv.operator>>(t), CSVParserException);
 
 }
 
@@ -81,6 +109,7 @@ TEST(CSVParser, UnclosedQuoteCRLF) {
     string record = "aaa, before_\"quotestart\nnewline, cccc";
     istringstream iss(record);
     CSVParser<string, string, string> csv {iss};
-    ASSERT_THROW(csv.Next(), ParseException);
+    TripleString t;
+    ASSERT_THROW(csv.operator>>(t), ParseException);
 
 }
