@@ -111,5 +111,76 @@ TEST(CSVParser, UnclosedQuoteCRLF) {
     CSVParser<string, string, string> csv {iss};
     TripleString t;
     ASSERT_THROW(csv.operator>>(t), ParseException);
+}
 
+TEST(CSVParser, Empty) {
+    string record = "";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString actual = {"la", "la", "la"};
+
+    TripleString expected = actual;
+
+    csv >> actual;
+    ASSERT_EQ(actual,expected);
+}
+
+TEST(CSVParser, IteratorStyleFor) {
+    string record = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+    istringstream iss(record);
+    CSVParser<int> csv {iss};
+    std::vector<int> expected = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int> actual;
+    for (tuple<int> t : csv) {
+        actual.push_back(std::get<0>(t));
+    }
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(CSVParser, DifferentConfig) {
+    string record ="aaa|bbb|ccc\tddd|eee|ff\'ff\t\'";   // <-- no '\n'
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss, 0, '|', '\t', '\''};
+    TripleString actual;
+
+    csv >> actual;
+    TripleString expected = {"aaa", "bbb", "ccc"};
+    ASSERT_EQ(actual, expected);
+
+    csv >> actual;
+    expected = {"ddd", "eee", "ffff\t"};
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(CSVParser, NewLine) {
+    string record = "1, 11\n";
+    istringstream iss(record);
+    CSVParser<int, int> csv {iss};
+    std::tuple<int, int> actual;
+    for (auto t : csv) {
+        actual = t;
+    }
+    std::tuple<int, int> expected = std::make_tuple(1, 11);
+    ASSERT_EQ(actual, expected);
+
+}
+
+TEST(CSVParser, SkipLines) {
+    string record ="aaa,bbb,ccc\n"
+                   "ddd,eee,fff\n"
+                   "ggg,hhh,iii\n";   // <-- no '\n'
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss, 2};
+    TripleString expected = {"ggg", "hhh", "iii"};
+
+    TripleString actual;
+    csv >> actual;
+    ASSERT_EQ(actual, expected);
+}
+
+
+int main(int argc, char** argv) {
+    spdlog::set_level(spdlog::level::err);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
