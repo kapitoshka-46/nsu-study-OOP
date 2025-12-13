@@ -40,19 +40,20 @@ public:
     class InputIterator;
 
     struct Config {
-        char column_delimiter = ',';
-        char line_delimiter = '\n'; // TODO: use line_delimiter for parsing
-        char escape = '\\'; //TODO: use escape character for parsing
+        char delimiter;
+        char line_delimiter;
+        char quote;
+        char escape; //TODO: use escape character for parsing
     };
 
 
-    explicit CSVParser(const std::string &file, char delimiter =',', char quote = '"', int skip_lines = 0);
+    explicit CSVParser(const std::string &file, int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
-    explicit CSVParser(std::ifstream &&file,    char delimiter =',', char quote = '"', int skip_lines = 0);
+    explicit CSVParser(std::ifstream &&file,    int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
-    explicit CSVParser(std::ifstream &file,     char delimiter =',', char quote = '"', int skip_lines = 0); // may be delete ???
+    explicit CSVParser(std::ifstream &file,     int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0'); // may be delete ???
 
-    explicit CSVParser(std::istream &is,        char delimiter =',', char quote = '"', int skip_lines = 0);
+    explicit CSVParser(std::istream &is,        int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
     CSVParser(const CSVParser &other) = delete;
     CSVParser &operator=(const CSVParser &other) = delete;
@@ -65,10 +66,11 @@ public:
     }
 
     CSVParser& operator>>(std::tuple<Args ...> &t) {
-        if (istream_.fail()) {
+        if (!istream_) {
             is_good_ = false;
             return *this;
         }
+
 
         std::vector<std::string> fields = GetRecordAndParse();
         if (fields.empty()) {
@@ -91,149 +93,166 @@ public:
 private:
     std::unique_ptr<std::ifstream> owned_file_ {nullptr};
     std::istream &istream_;
-    const char delimiter_;
-    const char quote_;
+    Config cfg_;
     bool is_good_ = true;
     int line_ = 0;
 
+    void SkipLines(int n);
     std::vector<std::string> GetRecordAndParse(); // TODO: сделать совместимость для  basic_string
 };
 
 
 // ---------------- Constructors --------------------
 template<typename ... Args>
-CSVParser<Args...>::CSVParser(const std::string &file, char delimiter, char quote, int skip_lines)
+CSVParser<Args...>::CSVParser(const std::string &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
 : owned_file_(std::make_unique<std::ifstream>(file)),
 istream_(*owned_file_),
-delimiter_(delimiter),
-quote_(quote)
+cfg_(delimiter, line_delimiter, quote, escape)
 {
-    spdlog::debug("CSVParser constructor");
-    spdlog::info("Set delimiter: {}", delimiter_);
+    SkipLines(skip_lines);
+    spdlog::info("CSVParser: skipping {} lines", skip_lines);
+    spdlog::debug("CSVParser(const std::string &file...) constructor");
+    spdlog::info("Set delimiter: {}", cfg_.delimiter);
 }
 
 template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::ifstream &&file, char delimiter, char quote, int skip_lines)
+CSVParser<Args...>::CSVParser(std::ifstream &&file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
     :owned_file_(std::make_unique<std::ifstream>(std::move(file))),
 istream_(*owned_file_),
-delimiter_(delimiter),
-quote_(quote)
+cfg_(delimiter, line_delimiter, quote, escape)
 {
-    spdlog::debug("CSVParser constructor");
-    spdlog::info("Set delimiter: {}", delimiter_);
+    SkipLines(skip_lines);
+    spdlog::info("CSVParser: skipping {} lines", skip_lines);
+    spdlog::debug("CSVParser(std::ifstream &&file, ...) constructor");
+    spdlog::info("Set delimiter: {}", cfg_.delimiter);
 }
 
 template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::ifstream &file, char delimiter, char quote, int skip_lines)
+CSVParser<Args...>::CSVParser(std::ifstream &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
 : istream_(file),
-delimiter_(delimiter),
-quote_(quote)
+cfg_(delimiter, line_delimiter, quote, escape)
 {
-    spdlog::debug("CSVParser: constructor");
-    spdlog::info("Set delimiter: \"{}\"", delimiter_);
+    SkipLines(skip_lines);
+    spdlog::info("CSVParser: skipping {} lines", skip_lines);
+    spdlog::debug("CSVParser: (std::ifstream &file,...) constructor");
+    spdlog::info("Set delimiter: \"{}\"", cfg_.delimiter);
 }
 
 template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::istream &is, char delimiter, char quote, int skip_lines)
+CSVParser<Args...>::CSVParser(std::istream &is, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
     : istream_(is),
-delimiter_(delimiter),
-quote_(quote)
+cfg_(delimiter, line_delimiter, quote, escape)
 {
+    SkipLines(skip_lines);
+    spdlog::info("CSVParser: skipping {} lines", skip_lines);
+    spdlog::debug("CSVParser: (std::istream &is, ...) constructor");
+    spdlog::info("Set delimiter: \"{}\"", cfg_.delimiter);
 }
 
 
-
-inline std::string read_quote_and_field_to_the_end(std::istream & is, char delimiter, char quote) {
-    std::string res;
-    std::getline(is, res, quote);
-    std::string other;
-    std::getline(is, other, delimiter);
-    res += other;
-    return res;
+template<typename ... Args>
+void CSVParser<Args...>::SkipLines(int n) {
+    std::tuple<Args ...> dummy;
+    for (int i = 0; static_cast<bool>(*this) && i < n; ++i) {
+        *this >> dummy;
+    }
 }
 
+// template <typename ... Args>
+// std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
+//     line_++;
+//     using String = std::string;
+//
+//     std::vector<String> record;
+//
+//     String field;
+//     char c;
+//     bool in_quote = false;
+//     while (istream_.read(&c, sizeof(c))) {
+//         if (c == cfg_.quote) {
+//             in_quote = !in_quote;
+//             continue;
+//         }
+//         if (!in_quote && c == cfg_.delimiter) {
+//             record.push_back(field);
+//             field.clear();
+//             continue;
+//         }
+//         if (!in_quote && c == cfg_.line_delimiter) {
+//             line_++;
+//             break;
+//         }
+//         field += c;
+//     }
+//     if (c == 0) {
+//         is_good_ = false;
+//         return record;
+//     }
+//     record.push_back(field);
+//     field.clear();
+//
+//     if (record.size() < sizeof...(Args)) {
+//         throw ParseException(field, line_, field.size() + 1, "Expected more fields");
+//     }
+//     if (record.size() > sizeof...(Args)) {
+//         throw ParseException(field, line_, field.size() + 1, "Got unexpected extra fields");
+//     }
+//
+//     return record;
+// }
 
 template <typename ... Args>
 std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
-    /* TODO: rewrite it if you have time.
-     * idea: 1) read full record from start to the end
-     *       2) give it to function: parse_record(basic_string record, CharT delim, CharT quote)
-    */
-    line_++;
     using String = std::string;
 
-    std::vector<String> result;
+    std::array<char, 1024> buff;
+    size_t index = 0;
 
-    String line;
-    if (!std::getline(istream_, line)) {
-        return result;
-    }
-    const String copy = line;
-    spdlog::debug("CSVParser: parse csv line: {}", line);
+    std::vector<String> record;
 
-    while (true) {
-        spdlog::debug("current line: {}", line);
-        auto quote_pos = line.find(quote_);
-        auto delim_pos = line.find(delimiter_);
+    char c;
+    bool in_quote = false;
+    bool is_start = false;
+    int field_length = 0;
+    while (istream_.read(&c, sizeof(c))) {
+        is_start = true;
+        if (c == cfg_.quote) {
+            in_quote = !in_quote;
+            continue;
+        }
+        if (!in_quote && c == cfg_.delimiter) {
 
-        if (quote_pos == delim_pos) {
-            assert(quote_pos == String::npos && delim_pos == String::npos);
-            if (!line.empty()) {result.push_back(line);}
-            spdlog::debug("done");
+            record.emplace_back(buff.begin() + index - field_length, buff.begin() + index);
+            field_length = 0;
+            continue;
+        }
+        if (!in_quote && c == cfg_.line_delimiter) {
+            line_++;
             break;
         }
-        if (quote_pos < delim_pos) {
-            auto end_quote = line.find(quote_, quote_pos + 1);
-            if (end_quote != std::string::npos) {
-                // TODO: выглядит не очень ...
-                line.erase(quote_pos, 1); end_quote--; delim_pos--;
-                line.erase(end_quote, 1); end_quote--; delim_pos--;
-            }
-            else {
-                auto prev_len = line.length();
-                String tmp;
-                std::getline(istream_, tmp, quote_);
-                line += tmp += quote_;
-                tmp.clear();
+        field_length++;
+        buff.at(index++) = c;
+        if (index == buff.size()) {
+            index = 0;
+        }
 
-                if (istream_.eof()) {  // если не получилось сосчитать, значит до этого дочитали до конца!
-                    throw ParseException(line, line_, quote_pos + 1, "Unclosed quote");
-                }
-
-                std::getline(istream_, tmp, delimiter_);
-
-                line += tmp;
-                spdlog::debug("fetching data to the next delimiter: {}", line.substr(prev_len));
-
-                // if quote_pos < delim_pos it means that field starts from line[0]
-                // and we need to push all data until another delimiter
-                // also we read line util delimiter -> just push line
-                line.erase(quote_pos, 1);
-                delim_pos = line.length() - 1;
-                std::getline(istream_, tmp); // дочитываем до новой строки
-                line += tmp;
-            }
-            //aaa " aaaa "   , other  (1)
-            //aaa " aaaa ,  " hhjl, other  (2)
-            if (delim_pos < end_quote) {  // (2)
-                    delim_pos = line.find(delimiter_, end_quote);
-                    if (delim_pos == std::string::npos) {
-                        delim_pos = line.length();
-                    }
-                }
-            }
-        result.push_back(line.substr(0, delim_pos));
-
-        line = delim_pos == line.length() ? "" : line.substr(delim_pos + 1);
     }
-    if (result.size() < sizeof...(Args)) {
-        throw ParseException(copy, line_, copy.size() + 1, "Expected more fields");
-    }
-    if (result.size() > sizeof...(Args)) {
-        throw ParseException(copy, line_, copy.size() - line.size() + 1, "Got unexpected extra fields");
+    if (!istream_ && !is_start) {
+        is_good_ = false;
+        return record;
     }
 
-    return result;
+    record.emplace_back(buff.begin() + index - field_length, buff.begin() + index);
+
+
+    if (record.size() < sizeof...(Args)) {
+        throw ParseException("ss", line_, 2, "Expected more fields");
+    }
+    if (record.size() > sizeof...(Args)) {
+        throw ParseException("ss", line_, 2, "Got unexpected extra fields");
+    }
+
+    return record;
 }
 
 
@@ -246,17 +265,18 @@ public:
     using difference_type = std::ptrdiff_t;
     using pointer = value_type *;
     using reference = value_type &;
-    using const_reference = const value_type &;
 
     InputIterator() = default;
-    InputIterator(CSVParser *parser) : parser_(parser) {}
+    InputIterator(CSVParser *parser) : parser_(parser) {
+        if (parser) {
+            *parser_ >> value_;
+        }
+    }
 
     reference operator*() {
         return value_;
     }
-    const_reference operator*() const {
-        return value_;
-    }
+
 
     InputIterator &operator++() {
         if (parser_ == nullptr) {

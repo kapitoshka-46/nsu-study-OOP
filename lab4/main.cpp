@@ -8,31 +8,27 @@
 
 using namespace std;
 using TripleString = tuple<string,string, string>;
+
 void setup_logger() {
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::set_level(spdlog::level::debug); // Set *global* log level to debug
-
-    //auto logger = spdlog::basic_logger_mt("file_logger", "app.log");
-
-    // // Делаем его логгером по умолчанию (чтобы spdlog::info() писал в файл)
-    //spdlog::set_default_logger(logger);
-
 }
+
 int main() {
     setup_logger();
     std::ifstream file("test.csv");
 
-    CSVParser<int, string, string> parser(file, ',', 0 /*skip first lines count*/);
 
     try {
-        string record = "a,b,\"ccc,\n\n cc,\n c\ncc\"";
+        // string record = "1, 11\n"
+        //                 "2, 22\n"
+        //                 "3, 33\n";
+        string record = "1, 11\n";
         istringstream iss(record);
-        CSVParser<string, string, string> csv {iss};
-
-        TripleString expected = {"a","b","ccc, cc, ccc"};
-        TripleString t;
-        csv >> t;
-
+        CSVParser<int, int> csv {iss};
+        for (auto t : csv) {
+            cout << t << endl;
+        }
     }
     catch (std::exception &e) {
         spdlog::critical(e.what());
