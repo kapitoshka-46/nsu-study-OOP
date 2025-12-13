@@ -14,21 +14,18 @@ void setup_logger() {
     spdlog::set_level(spdlog::level::debug); // Set *global* log level to debug
 }
 
+struct Point {int x, y;};
+
 int main() {
     setup_logger();
     std::ifstream file("test.csv");
 
 
     try {
-        // string record = "1, 11\n"
-        //                 "2, 22\n"
-        //                 "3, 33\n";
-        string record = "1, 11\n";
-        istringstream iss(record);
-        CSVParser<int, int> csv {iss};
-        for (auto t : csv) {
-            cout << t << endl;
-        }
+        basic_ostringstream<wchar_t> oss;
+       // std::tuple<Point, int> t({3, 4}, 5);
+        std::tuple<int, int> t(1, 2);
+        oss  << t  << endl;
     }
     catch (std::exception &e) {
         spdlog::critical(e.what());

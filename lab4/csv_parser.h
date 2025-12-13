@@ -205,7 +205,7 @@ template <typename ... Args>
 std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
     using String = std::string;
 
-    std::array<char, 1024> buff;
+    std::array<char, 1024> buff{}; // TODO
     size_t index = 0;
 
     std::vector<String> record;
@@ -267,7 +267,7 @@ public:
     using reference = value_type &;
 
     InputIterator() = default;
-    InputIterator(CSVParser *parser) : parser_(parser) {
+    explicit InputIterator(CSVParser *parser) : parser_(parser) {
         if (parser) {
             *parser_ >> value_;
         }
