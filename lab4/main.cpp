@@ -18,18 +18,24 @@ struct Point {int x, y;};
 
 int main() {
     setup_logger();
-    std::ifstream file("test.csv");
-
-
+    vector<tuple<int, string, string, float>> tuples;
+    int i = 0;
+    tuples.resize(40000);
     try {
-        basic_ostringstream<wchar_t> oss;
-       // std::tuple<Point, int> t({3, 4}, 5);
-        std::tuple<int, int> t(1, 2);
-        oss  << t  << endl;
+        std::ifstream file("test_big.csv");
+        CSVParser<int, string, string, float> parser(file);
+        while (parser >> tuples.at(i++)) {};
     }
     catch (std::exception &e) {
         spdlog::critical(e.what());
     }
+
+    cout << tuples.at(1) << "\n";
+    cout << tuples.at(2) << "\n";
+    cout << tuples.at(3) << "\n";
+    cout << "..." << "\n";
+    cout << tuples.at(i - 3) << "\n";
+    cout << tuples.at(i - 2) << "\n";
     return 0;
 
 }

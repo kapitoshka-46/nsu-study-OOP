@@ -32,6 +32,46 @@ struct ParseException : CSVParserException {
     {}
 };
 
+template <size_t N, typename CharT, typename Traits=std::char_traits<CharT>>
+class CharBuffer {
+public:
+
+    explicit CharBuffer(std::basic_istream<CharT, Traits> &istream) : istream_(istream) {
+        Refill();
+        spdlog::debug("CharBuffer: (const basic_istream &) constructed");
+    }
+    explicit CharBuffer(std::basic_istream<CharT, Traits> &&istream) = delete;
+
+    CharBuffer(const CharBuffer &other) = delete;
+    CharBuffer &operator=(const CharBuffer &other) = delete;
+
+    CharBuffer(CharBuffer &&other) = delete;
+    CharBuffer &operator=(CharBuffer &&other) = delete;
+
+    CharBuffer &operator>>(CharT &c) {
+        if (pos_ == available_) { Refill(); }
+        if (!IsGood()) { return *this; }
+
+        c = data_.at(pos_++);
+        return *this;
+    }
+
+    bool IsGood() const { return available_ > 0; }
+    explicit operator bool() const { return IsGood(); }
+
+private:
+    void Refill() {
+        pos_ = 0;
+        istream_.read(reinterpret_cast<char *>(data_.data()), N * sizeof(CharT));
+        available_ = istream_.gcount();
+    }
+
+    std::basic_istream<CharT, Traits> &istream_;
+    size_t available_ = 0;
+    size_t pos_ = available_;
+    std::array<CharT, N> data_ {};
+};
+
 
 template <typename ...Args>
 class CSVParser {
@@ -66,7 +106,7 @@ public:
     }
 
     CSVParser& operator>>(std::tuple<Args ...> &t) {
-        if (!istream_) {
+        if (!buff_) {
             is_good_ = false;
             return *this;
         }
@@ -78,7 +118,7 @@ public:
             return *this;
         }
 
-        t = make_tuple_from_strings<char, std::char_traits<char>,Args...>(fields);
+        t = make_tuple_from_strings<Args...>(fields.begin(), fields.end());
         return *this;
     }
 
@@ -93,6 +133,8 @@ public:
 private:
     std::unique_ptr<std::ifstream> owned_file_ {nullptr};
     std::istream &istream_;
+    CharBuffer<256, char> buff_ {istream_};
+
     Config cfg_;
     bool is_good_ = true;
     int line_ = 0;
@@ -112,7 +154,6 @@ cfg_(delimiter, line_delimiter, quote, escape)
     SkipLines(skip_lines);
     spdlog::info("CSVParser: skipping {} lines", skip_lines);
     spdlog::debug("CSVParser(const std::string &file...) constructor");
-    spdlog::info("Set delimiter: {}", cfg_.delimiter);
 }
 
 template<typename ... Args>
@@ -124,7 +165,6 @@ cfg_(delimiter, line_delimiter, quote, escape)
     SkipLines(skip_lines);
     spdlog::info("CSVParser: skipping {} lines", skip_lines);
     spdlog::debug("CSVParser(std::ifstream &&file, ...) constructor");
-    spdlog::info("Set delimiter: {}", cfg_.delimiter);
 }
 
 template<typename ... Args>
@@ -135,7 +175,6 @@ cfg_(delimiter, line_delimiter, quote, escape)
     SkipLines(skip_lines);
     spdlog::info("CSVParser: skipping {} lines", skip_lines);
     spdlog::debug("CSVParser: (std::ifstream &file,...) constructor");
-    spdlog::info("Set delimiter: \"{}\"", cfg_.delimiter);
 }
 
 template<typename ... Args>
@@ -146,7 +185,6 @@ cfg_(delimiter, line_delimiter, quote, escape)
     SkipLines(skip_lines);
     spdlog::info("CSVParser: skipping {} lines", skip_lines);
     spdlog::debug("CSVParser: (std::istream &is, ...) constructor");
-    spdlog::info("Set delimiter: \"{}\"", cfg_.delimiter);
 }
 
 
@@ -158,63 +196,19 @@ void CSVParser<Args...>::SkipLines(int n) {
     }
 }
 
-// template <typename ... Args>
-// std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
-//     line_++;
-//     using String = std::string;
-//
-//     std::vector<String> record;
-//
-//     String field;
-//     char c;
-//     bool in_quote = false;
-//     while (istream_.read(&c, sizeof(c))) {
-//         if (c == cfg_.quote) {
-//             in_quote = !in_quote;
-//             continue;
-//         }
-//         if (!in_quote && c == cfg_.delimiter) {
-//             record.push_back(field);
-//             field.clear();
-//             continue;
-//         }
-//         if (!in_quote && c == cfg_.line_delimiter) {
-//             line_++;
-//             break;
-//         }
-//         field += c;
-//     }
-//     if (c == 0) {
-//         is_good_ = false;
-//         return record;
-//     }
-//     record.push_back(field);
-//     field.clear();
-//
-//     if (record.size() < sizeof...(Args)) {
-//         throw ParseException(field, line_, field.size() + 1, "Expected more fields");
-//     }
-//     if (record.size() > sizeof...(Args)) {
-//         throw ParseException(field, line_, field.size() + 1, "Got unexpected extra fields");
-//     }
-//
-//     return record;
-// }
-
 template <typename ... Args>
 std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
     using String = std::string;
 
-    std::array<char, 1024> buff{}; // TODO
+    String field{}; // TODO
     size_t index = 0;
-
     std::vector<String> record;
 
     char c;
     bool in_quote = false;
     bool is_start = false;
     int field_length = 0;
-    while (istream_.read(&c, sizeof(c))) {
+    while (buff_ >> c) {
         is_start = true;
         if (c == cfg_.quote) {
             in_quote = !in_quote;
@@ -222,7 +216,7 @@ std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
         }
         if (!in_quote && c == cfg_.delimiter) {
 
-            record.emplace_back(buff.begin() + index - field_length, buff.begin() + index);
+            record.emplace_back(field.begin() + index - field_length, field.begin() + index);
             field_length = 0;
             continue;
         }
@@ -231,18 +225,19 @@ std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
             break;
         }
         field_length++;
-        buff.at(index++) = c;
-        if (index == buff.size()) {
-            index = 0;
-        }
+        index++;
+        field.push_back(c);
 
     }
-    if (!istream_ && !is_start) {
+    if (!buff_ && !is_start) {
         is_good_ = false;
         return record;
     }
 
-    record.emplace_back(buff.begin() + index - field_length, buff.begin() + index);
+    if (field_length == 0) {
+        spdlog::debug("got empty field");
+    }
+    record.emplace_back(field.begin() + index - field_length, field.begin() + index);
 
 
     if (record.size() < sizeof...(Args)) {

@@ -69,7 +69,22 @@ operator<<(std::basic_ostream<CharT, Traits> &os, std::tuple<Args...> const &t) 
 }
 
 
-// ---------------------- Tuple Reader ----------------------------- //
+// ---------------------- Tuple Maker ----------------------------- //
+template <typename T>
+concept basic_string_like = requires
+{
+    // checking if types exists
+    typename T::value_type;
+    typename T::traits_type;
+
+    // checking if it is a basic_string
+    requires std::same_as<
+        T,
+        std::basic_string<typename T::value_type, typename T::traits_type>
+    >;
+};
+
+
 template <class CharT, class Traits, class T>
 concept ShiftedFromStream = requires(std::basic_istream<CharT, Traits> is, T t)
 {
@@ -78,6 +93,7 @@ concept ShiftedFromStream = requires(std::basic_istream<CharT, Traits> is, T t)
 
 
 template <class CharT, class Traits, typename T>
+// helper function
 T from_string(const std::basic_string<CharT, Traits> &str) {
     if constexpr (std::is_same_v<T, std::basic_string<CharT, Traits>>) {
         return str;
@@ -92,25 +108,37 @@ T from_string(const std::basic_string<CharT, Traits> &str) {
 }
 
 
-template <class CharT, class Traits, class...Args>
+template <class...Args, class Iterator>
 std::tuple<Args...>
-make_tuple_from_strings(const std::vector<std::basic_string<CharT, Traits>> &fields)
-requires (ShiftedFromStream<CharT, Traits, Args> && ...)
+make_tuple_from_strings(Iterator first, Iterator last)
 {
-    if (fields.size() < sizeof...(Args)) {
+
+    using StringType = std::remove_cvref_t<
+       typename std::iterator_traits<Iterator>::value_type
+   >;
+
+    static_assert(basic_string_like<StringType>, "All elements must be a std::basic_string");
+
+    using CharT = typename StringType::value_type;
+    using Traits = typename StringType::traits_type;
+
+
+    // checking sizes
+    const auto n = std::distance(first, last);
+    if (n < sizeof...(Args)) {
         throw std::invalid_argument("Not enough params for making a tuple");
     }
 
-    if (fields.size() < sizeof...(Args)) {
+    if (n > sizeof...(Args)) {
         throw std::invalid_argument("Too many params for making a tuple");
     }
+
+    // parsing
     std::tuple<Args...> t;
-
-
     if constexpr (sizeof...(Args)) {
         size_t i = 0;
-        auto maker = [&i, fields] (Args&... args) {
-            ((args = from_string<CharT, Traits, std::decay_t<Args>>(fields.at(i++))),...);
+        auto maker = [&first] (Args&... args) {
+            ((args = from_string<CharT, Traits, std::decay_t<Args>>(*first++)),...);
         };
 
         std::apply(maker, t);
