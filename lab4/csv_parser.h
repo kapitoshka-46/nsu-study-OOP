@@ -56,6 +56,18 @@ public:
         return *this;
     }
 
+    CharT peek() {
+        if (pos_ < available_) {
+            return data_.at(pos_);
+        }
+        if (pos_ == available_) {
+            return istream_.peek();
+        }
+        else {
+            throw std::logic_error("pos_ can't be > available_");
+        }
+    }
+
     bool IsGood() const { return available_ > 0; }
     explicit operator bool() const { return IsGood(); }
 
@@ -84,16 +96,28 @@ public:
         CharT line_delimiter;
         CharT quote;
         CharT escape; //TODO: use escape character for parsing
+
+        Config (CharT delimiter, CharT line_delimiter, CharT quote, CharT escape)
+            : delimiter(delimiter),
+            line_delimiter(line_delimiter),
+        quote(quote), escape(escape)
+        {
+            if (delimiter == escape || delimiter == line_delimiter || delimiter == quote || delimiter == escape
+                || line_delimiter == quote || line_delimiter == escape
+                || quote == escape) {
+                throw std::invalid_argument("All special symbols mustS be different!");
+            }
+        }
     };
 
 
-    explicit BasicCSVParser(const std::basic_string<CharT, Traits> &file, int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(const std::basic_string<CharT, Traits> &file, int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape ='\\');
 
-    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &&file,    int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &&file,    int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape ='\\');
 
-    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &file,     int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0'); // may be delete ???
+    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &file,     int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape ='\\'); // may be delete ???
 
-    explicit BasicCSVParser(std::basic_istream<CharT, Traits> &is,        int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(std::basic_istream<CharT, Traits> &is,        int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape ='\\');
 
     BasicCSVParser(const BasicCSVParser &other) = delete;
     BasicCSVParser &operator=(const BasicCSVParser &other) = delete;
@@ -200,6 +224,7 @@ void BasicCSVParser<CharT, Traits, Args...>::SkipLines(int n) {
     }
 }
 
+
 template<typename CharT, typename Traits, typename ... Args>
 std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args...>::GetRecordAndParse() {
     using String = std::basic_string<CharT, Traits>;
@@ -212,15 +237,25 @@ std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args
     bool in_quote = false;
     bool is_start = false;
     int field_length = 0;
+
     while (buff_ >> c) {
         is_start = true;
         if (c == cfg_.line_delimiter) {line_++;}
+
+        if (c == cfg_.escape) {
+            CharT next_c = buff_.peek();
+            if (next_c != EOF) {
+                buff_ >> next_c; // removing it from buffer
+                record_str += next_c;
+                continue;
+            }
+        }
+
         if (c == cfg_.quote) {
             in_quote = !in_quote;
             continue;
         }
         if (!in_quote && c == cfg_.delimiter) {
-
             record.emplace_back(record_str.begin() + index - field_length, record_str.begin() + index);
             field_length = 0;
             continue;
@@ -231,7 +266,6 @@ std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args
         field_length++;
         index++;
         record_str.push_back(c);
-
     }
     if (!buff_ && !is_start) {
         is_good_ = false;

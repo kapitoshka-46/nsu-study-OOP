@@ -47,6 +47,47 @@ TEST(CSVParser, QuoteToTheEnd) {
     ASSERT_EQ(t, expected);
 }
 
+TEST(CSVParser, EscapingQuote) {
+    string record = "a,b,cc\\\"cc";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString t;
+    csv >> t;
+    TripleString expected = {"a", "b", "cc\"cc"};
+    ASSERT_EQ(t, expected);
+}
+
+TEST(CSVParser, EscapingComma) {
+    string record = "a,b,cc\\,cc";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString t;
+    csv >> t;
+    TripleString expected = {"a", "b", "cc,cc"};
+    ASSERT_EQ(t, expected);
+}
+
+TEST(CSVParser, EscapingNewLine) {
+    string record = "a,b,cc\\\ncc";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString t;
+    csv >> t;
+    TripleString expected = {"a", "b", "cc\ncc"};
+    ASSERT_EQ(t, expected);
+}
+
+TEST(CSVParser, EscapingChar) {
+    string record = "a,b,cc\\xcc";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString t;
+    csv >> t;
+    TripleString expected = {"a", "b", "ccxcc"};
+    ASSERT_EQ(t, expected);
+}
+
+
 TEST(CSVParser, QuoteNewLineEnd) {
     string record = "a,b,\"ccc,\n\n cc,\n c\ncc\"";
     istringstream iss(record);
