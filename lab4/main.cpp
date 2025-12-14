@@ -23,7 +23,7 @@ int main() {
     tuples.resize(40000);
     try {
         std::ifstream file("test_big.csv");
-        CSVParser<int, string, string, float> parser(file);
+        BasicCSVParser<int, string, string, float> parser(file);
         while (parser >> tuples.at(i++)) {};
     }
     catch (std::exception &e) {

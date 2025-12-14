@@ -62,7 +62,7 @@ public:
 private:
     void Refill() {
         pos_ = 0;
-        istream_.read(reinterpret_cast<char *>(data_.data()), N * sizeof(CharT));
+        istream_.read(reinterpret_cast<CharT *>(data_.data()), N * sizeof(CharT));
         available_ = istream_.gcount();
     }
 
@@ -73,46 +73,46 @@ private:
 };
 
 
-template <typename ...Args>
-class CSVParser {
+template <typename CharT, typename Traits, typename ...Args>
+class BasicCSVParser {
 public:
 
     class InputIterator;
 
     struct Config {
-        char delimiter;
-        char line_delimiter;
-        char quote;
-        char escape; //TODO: use escape character for parsing
+        CharT delimiter;
+        CharT line_delimiter;
+        CharT quote;
+        CharT escape; //TODO: use escape character for parsing
     };
 
 
-    explicit CSVParser(const std::string &file, int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(const std::basic_string<CharT, Traits> &file, int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
-    explicit CSVParser(std::ifstream &&file,    int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &&file,    int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
-    explicit CSVParser(std::ifstream &file,     int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0'); // may be delete ???
+    explicit BasicCSVParser(std::basic_ifstream<CharT, Traits> &file,     int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0'); // may be delete ???
 
-    explicit CSVParser(std::istream &is,        int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
+    explicit BasicCSVParser(std::basic_istream<CharT, Traits> &is,        int skip_lines = 0, char delimiter =',', char line_delimiter='\n', char quote = '"', char escape='\0');
 
-    CSVParser(const CSVParser &other) = delete;
-    CSVParser &operator=(const CSVParser &other) = delete;
+    BasicCSVParser(const BasicCSVParser &other) = delete;
+    BasicCSVParser &operator=(const BasicCSVParser &other) = delete;
 
-    CSVParser(CSVParser &&other)  noexcept = default;
-    CSVParser &operator=(CSVParser &&other) noexcept = default;
+    BasicCSVParser(BasicCSVParser &&other)  noexcept = default;
+    BasicCSVParser &operator=(BasicCSVParser &&other) noexcept = default;
 
     explicit operator bool() const noexcept {
         return is_good_;
     }
 
-    CSVParser& operator>>(std::tuple<Args ...> &t) {
+    BasicCSVParser& operator>>(std::tuple<Args ...> &t) {
         if (!buff_) {
             is_good_ = false;
             return *this;
         }
 
 
-        std::vector<std::string> fields = GetRecordAndParse();
+        std::vector<std::basic_string<CharT, Traits>> fields = GetRecordAndParse();
         if (fields.empty()) {
             is_good_ = false;
             return *this;
@@ -131,22 +131,26 @@ public:
     }
 
 private:
-    std::unique_ptr<std::ifstream> owned_file_ {nullptr};
-    std::istream &istream_;
-    CharBuffer<256, char> buff_ {istream_};
+    std::unique_ptr<std::basic_ifstream<CharT, Traits>> owned_file_ {nullptr};
+    std::basic_istream<CharT, Traits> &istream_;
+    CharBuffer<256, CharT, Traits> buff_ {istream_};
 
     Config cfg_;
     bool is_good_ = true;
     int line_ = 0;
 
     void SkipLines(int n);
-    std::vector<std::string> GetRecordAndParse(); // TODO: сделать совместимость для  basic_string
+
+    std::vector<std::basic_string<CharT, Traits>> GetRecordAndParse(); // TODO: сделать совместимость для  basic_string
 };
+
+template <typename ...Args>
+using CSVParser = BasicCSVParser<char,std::char_traits<char>, Args ...>;
 
 
 // ---------------- Constructors --------------------
-template<typename ... Args>
-CSVParser<Args...>::CSVParser(const std::string &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
+template<typename CharT, typename Traits, typename ... Args>
+BasicCSVParser<CharT, Traits, Args...>::BasicCSVParser(const std::basic_string<CharT, Traits> &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
 : owned_file_(std::make_unique<std::ifstream>(file)),
 istream_(*owned_file_),
 cfg_(delimiter, line_delimiter, quote, escape)
@@ -156,8 +160,8 @@ cfg_(delimiter, line_delimiter, quote, escape)
     spdlog::debug("CSVParser(const std::string &file...) constructor");
 }
 
-template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::ifstream &&file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
+template<typename CharT, typename Traits, typename ... Args>
+BasicCSVParser<CharT, Traits, Args...>::BasicCSVParser(std::basic_ifstream<CharT, Traits> &&file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
     :owned_file_(std::make_unique<std::ifstream>(std::move(file))),
 istream_(*owned_file_),
 cfg_(delimiter, line_delimiter, quote, escape)
@@ -167,8 +171,8 @@ cfg_(delimiter, line_delimiter, quote, escape)
     spdlog::debug("CSVParser(std::ifstream &&file, ...) constructor");
 }
 
-template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::ifstream &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
+template<typename CharT, typename Traits, typename ... Args>
+BasicCSVParser<CharT, Traits, Args...>::BasicCSVParser(std::basic_ifstream<CharT, Traits> &file, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
 : istream_(file),
 cfg_(delimiter, line_delimiter, quote, escape)
 {
@@ -177,8 +181,8 @@ cfg_(delimiter, line_delimiter, quote, escape)
     spdlog::debug("CSVParser: (std::ifstream &file,...) constructor");
 }
 
-template<typename ... Args>
-CSVParser<Args...>::CSVParser(std::istream &is, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
+template<typename CharT, typename Traits, typename ... Args>
+BasicCSVParser<CharT, Traits, Args...>::BasicCSVParser(std::basic_istream<CharT, Traits> &is, int skip_lines, char delimiter, char line_delimiter, char quote, char escape)
     : istream_(is),
 cfg_(delimiter, line_delimiter, quote, escape)
 {
@@ -188,23 +192,23 @@ cfg_(delimiter, line_delimiter, quote, escape)
 }
 
 
-template<typename ... Args>
-void CSVParser<Args...>::SkipLines(int n) {
+template<typename CharT, typename Traits, typename ... Args>
+void BasicCSVParser<CharT, Traits, Args...>::SkipLines(int n) {
     std::tuple<Args ...> dummy;
     for (int i = 0; static_cast<bool>(*this) && i < n; ++i) {
         *this >> dummy;
     }
 }
 
-template <typename ... Args>
-std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
-    using String = std::string;
+template<typename CharT, typename Traits, typename ... Args>
+std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args...>::GetRecordAndParse() {
+    using String = std::basic_string<CharT, Traits>;
 
     String field{}; // TODO
     size_t index = 0;
     std::vector<String> record;
 
-    char c;
+    CharT c;
     bool in_quote = false;
     bool is_start = false;
     int field_length = 0;
@@ -251,8 +255,8 @@ std::vector<std::string> CSVParser<Args...>::GetRecordAndParse() {
 }
 
 
-template <typename ...Args>
-class CSVParser<Args...>::InputIterator {
+template<typename CharT, typename Traits, typename ... Args>
+class BasicCSVParser<CharT, Traits, Args...>::InputIterator {
 public:
 
     using iterator_category = std::input_iterator_tag;
@@ -262,7 +266,7 @@ public:
     using reference = value_type &;
 
     InputIterator() = default;
-    explicit InputIterator(CSVParser *parser) : parser_(parser) {
+    explicit InputIterator(BasicCSVParser *parser) : parser_(parser) {
         if (parser) {
             *parser_ >> value_;
         }
@@ -298,7 +302,7 @@ public:
 
 
 private:
-    CSVParser *parser_;
+    BasicCSVParser *parser_;
     std::tuple<Args...> value_;
 };
 

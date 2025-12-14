@@ -5,6 +5,8 @@
 using namespace std;
 using TripleString = tuple<string,string, string>;
 
+using TripleWString = tuple<wstring,wstring, wstring>;
+
 TEST(CSVParser, BasicParsing) {
     string records = "aaa,bbb,ccc\n"
                      "zzz,yyy,xxx";
@@ -102,7 +104,6 @@ TEST(CSVParser, UnclosedQuoteNoCRLF) {
     TripleString expected = {"aaa", "before_quote", "ccc"};
     TripleString t;
     ASSERT_THROW(csv.operator>>(t), CSVParserException);
-
 }
 
 TEST(CSVParser, UnclosedQuoteCRLF) {
@@ -178,6 +179,32 @@ TEST(CSVParser, SkipLines) {
     ASSERT_EQ(actual, expected);
 }
 
+TEST(BasicCSVParser, WCharBasicParsing) {
+    wstring records = L"aaa,bbb,ccc\n"
+                 "zzz,yyy,xxx";
+    basic_istringstream<wchar_t> iss(records);
+    BasicCSVParser<wchar_t, std::char_traits<wchar_t>, wstring, wstring, wstring> csv {iss};
+
+    TripleWString expected1 = {L"aaa", L"bbb", L"ccc"};
+    TripleWString expected2 = {L"zzz", L"yyy", L"xxx"};
+    TripleWString t;
+
+    csv >> t;
+    ASSERT_EQ(t, expected1);
+    csv >> t;
+    ASSERT_EQ(t, expected2);
+}
+
+TEST(BasicCSVParser, WCharQuoteNewLineEnd) {
+    wstring record = L"a,b,\"ccc,\n\n cc,\n c\ncc\"";
+    basic_istringstream<wchar_t> iss(record);
+    BasicCSVParser<wchar_t, std::char_traits<wchar_t>, wstring, wstring, wstring> csv {iss};
+
+    TripleWString expected = {L"a",  L"b",  L"ccc,\n\n cc,\n c\ncc"};
+    TripleWString t;
+    csv >> t;
+    ASSERT_EQ(t, expected);
+}
 
 int main(int argc, char** argv) {
     spdlog::set_level(spdlog::level::err);
