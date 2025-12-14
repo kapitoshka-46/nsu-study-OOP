@@ -28,7 +28,7 @@ struct ParseException : CSVParserException {
     "error: " + color::red + msg + color::reset + " at line " + std::to_string(row)
     + ", symbol " + std::to_string(column) + "\n"
     + line + "\n"
-    + std::string(column - 1, ' ') + color::red + "^" + color::reset)
+    + std::string(std::max(column - 3, 0UL), ' ') + color::red + "^" + color::reset)
     {}
 };
 
@@ -137,7 +137,7 @@ private:
 
     Config cfg_;
     bool is_good_ = true;
-    int line_ = 0;
+    int line_ = 1;
 
     void SkipLines(int n);
 
@@ -204,7 +204,7 @@ template<typename CharT, typename Traits, typename ... Args>
 std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args...>::GetRecordAndParse() {
     using String = std::basic_string<CharT, Traits>;
 
-    String field{}; // TODO
+    String record_str{}; // TODO
     size_t index = 0;
     std::vector<String> record;
 
@@ -214,23 +214,23 @@ std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args
     int field_length = 0;
     while (buff_ >> c) {
         is_start = true;
+        if (c == cfg_.line_delimiter) {line_++;}
         if (c == cfg_.quote) {
             in_quote = !in_quote;
             continue;
         }
         if (!in_quote && c == cfg_.delimiter) {
 
-            record.emplace_back(field.begin() + index - field_length, field.begin() + index);
+            record.emplace_back(record_str.begin() + index - field_length, record_str.begin() + index);
             field_length = 0;
             continue;
         }
         if (!in_quote && c == cfg_.line_delimiter) {
-            line_++;
             break;
         }
         field_length++;
         index++;
-        field.push_back(c);
+        record_str.push_back(c);
 
     }
     if (!buff_ && !is_start) {
@@ -241,14 +241,16 @@ std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args
     if (field_length == 0) {
         spdlog::debug("got empty field");
     }
-    record.emplace_back(field.begin() + index - field_length, field.begin() + index);
+    record.emplace_back(record_str.begin() + index - field_length, record_str.end());
 
 
     if (record.size() < sizeof...(Args)) {
-        throw ParseException("ss", line_, 2, "Expected more fields");
+        std::string tmp {record_str.begin(), record_str.end()};
+        throw ParseException(tmp, line_, index + 3, "Expected more fields");
     }
     if (record.size() > sizeof...(Args)) {
-        throw ParseException("ss", line_, 2, "Got unexpected extra fields");
+        std::string tmp {record_str.begin(), record_str.end()};
+        throw ParseException(tmp, line_, index + 3, "Got unexpected extra fields");
     }
 
     return record;
