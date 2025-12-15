@@ -221,12 +221,12 @@ TEST(CSVParser, SkipLines) {
 }
 
 TEST(BasicCSVParser, WCharBasicParsing) {
-    wstring records = L"aaa,bbb,ccc\n"
+    wstring records = L"a你好世界aa,bbb,ccc\n"
                  "zzz,yyy,xxx";
     basic_istringstream<wchar_t> iss(records);
     BasicCSVParser<wchar_t, std::char_traits<wchar_t>, wstring, wstring, wstring> csv {iss};
 
-    TripleWString expected1 = {L"aaa", L"bbb", L"ccc"};
+    TripleWString expected1 = {L"a你好世界aa", L"bbb", L"ccc"};
     TripleWString expected2 = {L"zzz", L"yyy", L"xxx"};
     TripleWString t;
 
@@ -245,6 +245,41 @@ TEST(BasicCSVParser, WCharQuoteNewLineEnd) {
     TripleWString t;
     csv >> t;
     ASSERT_EQ(t, expected);
+}
+
+TEST(CSVParser, EscapeQuote) {
+    string record = "4,\"John \\\"The Coder\\\"\",Writes C++ code\n";
+    istringstream iss(record);
+    CSVParser<string, string, string> csv {iss};
+    TripleString actual;
+    csv >> actual;
+    TripleString expected {"4", "John \"The Coder\"", "Writes C++ code"};
+    ASSERT_EQ(actual, expected);
+}
+
+TEST(BasicCSVparser, WStrings) {
+    wstring csv_content =
+        L"ID,Name,Description\n"
+        "1,\"José\",Engineer from São Paulo\n"
+        "2,\"Мария\",\"Живёт в Москве, Россия\"\n"
+        "3,\"Zoë\",\"Loves 🐱 and 🌸\"\n"
+        "4,\"John \\\"The Coder\\\"\",Writes C++ code\n";
+
+    std::basic_istringstream<wchar_t> iss(csv_content);
+    BasicCSVParser<wchar_t, std::char_traits<wchar_t>, int, wstring, wstring> parser {iss, 1}; // skip header
+
+    auto check_row = [&](int id, const std::wstring& name, const std::wstring& desc) {
+        tuple<int, wstring, wstring> actual;
+        ASSERT_TRUE(parser >> actual);
+        ASSERT_EQ(std::get<0>(actual), id);
+        ASSERT_EQ(std::get<1>(actual), name);
+        ASSERT_EQ(std::get<2>(actual), desc);
+    };
+
+    check_row(1, L"José", L"Engineer from São Paulo");
+    check_row(2, L"Мария", L"Живёт в Москве, Россия");
+    check_row(3, L"Zoë", L"Loves 🐱 and 🌸");
+    check_row(4, L"John \"The Coder\"", L"Writes C++ code");
 }
 
 int main(int argc, char** argv) {

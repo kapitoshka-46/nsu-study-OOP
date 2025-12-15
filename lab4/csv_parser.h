@@ -3,7 +3,6 @@
 #include <fstream>
 #include <memory>
 #include <string>
-#include <sstream>
 #include <tuple>
 #include <spdlog/spdlog.h>
 #include "tuple_extension.h"
@@ -247,6 +246,8 @@ std::vector<std::basic_string<CharT, Traits>> BasicCSVParser<CharT, Traits, Args
             if (next_c != EOF) {
                 buff_ >> next_c; // removing it from buffer
                 record_str += next_c;
+                field_length++;
+                index++;
                 continue;
             }
         }

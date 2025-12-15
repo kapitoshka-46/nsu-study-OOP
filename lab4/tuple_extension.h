@@ -107,7 +107,6 @@ T from_string(const std::basic_string<CharT, Traits> &str) {
 
 }
 
-
 template <class...Args, class Iterator>
 std::tuple<Args...>
 make_tuple_from_strings(Iterator first, Iterator last)

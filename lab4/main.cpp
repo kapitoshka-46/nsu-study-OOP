@@ -15,13 +15,19 @@ void setup_logger() {
 }
 
 struct Point {int x, y;};
+std::ostream &operator<<(std::ostream &lhs, const Point &rhs) {
+    return lhs << '(' << rhs.x << " " << rhs.y << ')';
+}
+std::istream &operator>>(std::istream &lhs, Point &rhs) {
+    return lhs >> rhs.x >> rhs.y;
+}
 
 int main() {
     setup_logger();
 
     try {
         std::ifstream file("test.csv");
-        CSVParser<int, string, string, float> parser(file);
+        CSVParser<int, Point, string, float> parser(file);
         for (auto rs : parser) {
             cout << rs << endl;
         }
